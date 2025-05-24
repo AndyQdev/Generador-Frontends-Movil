@@ -1,5 +1,6 @@
 // Toolbar.tsx
 import { Hand, MousePointer, Minus, Plus, Save, Download, FilePlus } from 'lucide-react'
+import { DEVICES, type Device } from '../utils/devices'
 
 interface ToolbarProps {
   zoom: number // Nivel de zoom actual
@@ -11,6 +12,8 @@ interface ToolbarProps {
   onSubmit: () => void // Función para guardar cambios
   handleExport: () => void
   setOpenDlg: (open: boolean) => void
+  device: Device
+  setDevice: (d: Device) => void
 }
 
 export default function Toolbar({
@@ -21,7 +24,9 @@ export default function Toolbar({
   zoomOut,
   onSubmit,
   handleExport,
-  setOpenDlg
+  setOpenDlg,
+  device,
+  setDevice
 }: ToolbarProps) {
   return (
     <div className="fixed left-1/2 -translate-x-1/2 bottom-4 bg-neutral-800/90 backdrop-blur text-white rounded-full px-4 py-2 flex items-center shadow-lg">
@@ -40,7 +45,7 @@ export default function Toolbar({
       <button
         onClick={() => { setMode('hand') }}
         className={`p-2 rounded-full transition ${
-          mode === 'hand' ? 'bg-blue-500 text-white' : 'hover:bg-neutral-700'
+          mode === 'hand' ? 'bg-blue-500 text-white cursor-grab' : 'hover:bg-neutral-700'
         }`}
         title="Modo mano"
       >
@@ -99,6 +104,28 @@ export default function Toolbar({
       >
         <FilePlus size={18} />
       </button>
+       {/* === SELECT DISPOSITIVO === */}
+      <div className="w-px h-6 bg-white/20 mx-2" />
+      <select
+        className="text-white bg-[#3a3a3a] text-sm rounded px-2 py-1 outline-none"
+        value={device.id}
+        onChange={(e) => {
+          const d = DEVICES.find(dev => dev.id === e.target.value)!
+          setDevice(d)
+        }}
+        title="Seleccionar dispositivo"
+      >
+        {DEVICES.map((d) => (
+          <option
+            key={d.id}
+            value={d.id}
+            className="text-white bg-[#3a3a3a]" // Esto solo tiene efecto en algunos navegadores
+          >
+            {d.label}
+          </option>
+        ))}
+      </select>
+
     </div>
   )
 }

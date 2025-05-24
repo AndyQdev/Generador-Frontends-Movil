@@ -414,7 +414,6 @@ export default function Editor() {
       setPages(updatedPages)
     }
 
-    // 2. 🔴  emite a otros usuarios (throttle)
     throttledEmit(selectedComponent)
   }, [selectedComponent])
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string, scale: number) => {

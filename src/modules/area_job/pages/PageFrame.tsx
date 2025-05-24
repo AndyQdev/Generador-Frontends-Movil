@@ -6,8 +6,7 @@ import { useState } from 'react'
 import { useComponentContext } from '@/context/ComponentContext'
 import { getSocket } from '@/lib/socket'
 import throttle from 'lodash.throttle'
-const FRAME_W = 1537 // 👈 tu viewport base
-const FRAME_H = 729
+import { type Device } from '../utils/devices'
 
 interface PageFrameProps {
   page: Page // Página que se está renderizando
@@ -26,6 +25,7 @@ interface PageFrameProps {
   currentPageId: string
   pageIndex: number
   currentProjectId: string
+  device: Device
 }
 export default function PageFrame({
   page,
@@ -39,7 +39,8 @@ export default function PageFrame({
   scale,
   currentPageId,
   pageIndex,
-  currentProjectId
+  currentProjectId,
+  device
 }: PageFrameProps) {
   let isDragging = false
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
@@ -72,7 +73,7 @@ export default function PageFrame({
   }, 50)
   return (
     <div
-      style={{ width: FRAME_W, height: FRAME_H }}
+      style={{ width: device.width, height: device.height }}
       className={cn(
         'relative shadow-lg border overflow-hidden bg-[#D9D9D9]',
         selected ? 'ring-2 ring-blue-500' : 'border-gray-400'

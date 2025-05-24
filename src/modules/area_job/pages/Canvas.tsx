@@ -1,10 +1,11 @@
 // Canvas.tsx
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { TransformWrapper, TransformComponent, type ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
 import PageFrame from './PageFrame' // tu frame con Rnd dentro
 import Toolbar from './Toolbar' // barra inferior
 import { type Page } from '@/modules/projects/models/page.model'
 import { type ComponentItem } from './page'
+import { type Device, DEVICES } from '../utils/devices'
 
 interface CanvasProps {
   pages: Page[] // Lista de páginas
@@ -41,6 +42,7 @@ export default function Canvas({
 }: CanvasProps) {
   const [mode, setMode] = useState<'select' | 'hand'>('select')
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const [device, setDevice] = useState<Device>(DEVICES[0])
   const api = useRef<ReactZoomPanPinchRef | null>(null)
   /* ——— Zoom con Ctrl + wheel ——— */
   const handleWheel = useCallback(
@@ -66,7 +68,13 @@ export default function Canvas({
     },
     [] // <- pásale la ref que te llega en el render‑prop
   )
-
+  useEffect(() => {
+    if (mode === 'hand' && wrapperRef.current) {
+      wrapperRef.current.style.overflow = 'hidden'
+    } else if (wrapperRef.current) {
+      wrapperRef.current.style.overflow = 'auto'
+    }
+  }, [mode])
   return (
     <div className="w-full h-full bg-neutral-900 relative">
       <TransformWrapper
@@ -85,6 +93,12 @@ export default function Canvas({
         }}
         panning={{ disabled: mode !== 'hand', velocityDisabled: true }}
         doubleClick={{ disabled: true }}
+        onPanningStart={() => {
+          document.body.style.cursor = 'grabbing'
+        }}
+        onPanningStop={() => {
+          document.body.style.cursor = 'default'
+        }}
       >
         {/* {({ setTransform, bg-neutral-900 zoomIn, zoomOut, resetTransform, ...rest }) => ( */}
         {({ zoomIn, zoomOut, resetTransform, instance }) => {
@@ -113,12 +127,26 @@ export default function Canvas({
               >
                 <TransformComponent wrapperStyle={{ width: '100%' }}>
                   {/* ------------- FRAMES ------------- */}
-                  <div className="flex flex-col gap-16 items-center py-16">
+                  <div
+                    className="
+                      grid
+                      grid-cols-1
+                      md:grid-cols-2
+                      xl:grid-cols-3
+                      gap-y-16
+                      gap-x-10
+                      justify-items-center
+                      py-16
+                      w-max
+                      mx-auto
+                    "
+                  >
                   {pages
                     ?.filter(Boolean) // 🔥 Filtra páginas nulas o inválidas
                     .map((p, pageIdx) => (
                         <PageFrame
                           key={p.id}
+                          device={device}
                           currentProjectId={currentProjectId}
                           page={p}
                           pageIndex={pageIdx}
@@ -155,6 +183,8 @@ export default function Canvas({
                 onSubmit={onSubmit} // Pasa la función para guardar
                 handleExport={handleExport} // Pasa la función para exportar
                 setOpenDlg={setOpenDlg}
+                device={device}
+                setDevice={setDevice}
               />
             </div>
           )
