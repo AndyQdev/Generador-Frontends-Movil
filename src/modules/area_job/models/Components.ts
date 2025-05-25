@@ -6,8 +6,8 @@ export interface BaseComponent {
   height: number
 }
 export interface ComponentStyle {
-  backgroundColor?: string // Hex color
-  borderRadius?: number // En píxeles
+  backgroundColor?: string
+  borderRadius?: number
   padding?: {
     top?: number
     right?: number

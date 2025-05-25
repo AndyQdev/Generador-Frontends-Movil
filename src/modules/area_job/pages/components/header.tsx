@@ -42,8 +42,8 @@ export default function Header({ comp, portalRoot }: Props) {
     <>
       {/* barra superior (se sigue moviendo con Rnd) */}
       <div
-        style={{ left: comp.x, top: comp.y, width: comp.width, height: comp.height }}
-        className="absolute flex items-center bg-white shadow px-4"
+        // style={{ left: comp.x, top: comp.y, width: comp.width, height: comp.height }}
+        className="w-full h-full flex items-center bg-white shadow px-4"
       >
         {/* botón hamburguesa */}
         <button
