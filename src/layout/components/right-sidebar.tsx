@@ -19,6 +19,9 @@ import { useGetResource } from '@/hooks/useApiResource'
 import { type Project } from '@/modules/projects/models/project.model'
 import { ENDPOINTS } from '@/utils'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import ButtonTools from './elements/ButtonTools'
+import InputTools from './elements/InputTools'
+import HeaderTools from './elements/SidebarTools'
 
 export default function RightSidebar() {
   const { selectedComponent, setSelectedComponent } = useComponentContext()
@@ -45,7 +48,16 @@ export default function RightSidebar() {
   }
 
   function selectTitleIcon(iconName: string) {
-    if (selectedComponent?.type === 'sidebar') {
+    if (selectedComponent?.type === 'header') {
+      setSelectedComponent({
+        ...selectedComponent,
+        sidebar: {
+          ...selectedComponent.sidebar,
+          type: 'sidebar',
+          titleIcon: iconName
+        }
+      })
+    } else if (selectedComponent?.type === 'sidebar') {
       setSelectedComponent({
         ...selectedComponent,
         titleIcon: iconName
@@ -54,14 +66,29 @@ export default function RightSidebar() {
     setIsTitleIconPickerOpen(false)
   }
   function selectIcon(iconName: string) {
-    if (selectedComponent?.type === 'sidebar' && currentIconIndex !== null) {
+    if (currentIconIndex === null) return
+
+    if (selectedComponent?.type === 'header') {
+      const updatedSections = [...(selectedComponent.sidebar?.sections ?? [])]
+      updatedSections[currentIconIndex].icon = iconName
+
+      setSelectedComponent({
+        ...selectedComponent,
+        sidebar: {
+          ...selectedComponent.sidebar,
+          sections: updatedSections
+        }
+      })
+    } else if (selectedComponent?.type === 'sidebar') {
       const updatedSections = [...selectedComponent.sections]
       updatedSections[currentIconIndex].icon = iconName
+
       setSelectedComponent({
         ...selectedComponent,
         sections: updatedSections
       })
     }
+
     setIsIconPickerOpen(false)
   }
 
@@ -279,72 +306,39 @@ export default function RightSidebar() {
                     </div>
 
                     {/* Para Button */}
-                    {selectedComponent.type === 'button' && (
-                    <div className="space-y-3">
-                        {/* Texto */}
-                        <div className="flex items-center justify-between gap-2">
-                        <label className="text-gray-600 dark:text-gray-300 w-28">Texto:</label>
-                        <input
-                            value={selectedComponent.label}
-                            onChange={(e) => { setSelectedComponent({ ...selectedComponent, label: e.target.value }) }}
-                            className="flex-1 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm"
+                    {selectedComponent.type === 'button' && project && (
+                      <div className="space-y-3">
+                        <ButtonTools
+                          component={selectedComponent}
+                          setComponent={(updated) => { setSelectedComponent(updated) }}
+                          project={project}
                         />
+                        <div className='h-72'>
                         </div>
-
-                        {/* Color de fondo */}
-                        <div className="flex items-center justify-between gap-2">
-                        <label className="text-gray-600 dark:text-gray-300 w-28">Color fondo:</label>
-                        <input
-                            type="color"
-                            value={selectedComponent.backgroundColor ?? '#2563eb'}
-                            onChange={(e) => { setSelectedComponent({ ...selectedComponent, backgroundColor: e.target.value }) }}
-                            className="w-10 h-6 rounded border border-gray-300 dark:border-gray-600"
-                        />
-                        </div>
-
-                        {/* Border radius */}
-                        <div className="flex items-center justify-between gap-2">
-                        <label className="text-gray-600 dark:text-gray-300 w-28">Bordes:</label>
-                        <input
-                            type="number"
-                            min={0}
-                            value={parseInt(selectedComponent.borderRadius ?? '6')}
-                            onChange={(e) => {
-                              const radius = `${e.target.value}px`
-                              setSelectedComponent({ ...selectedComponent, borderRadius: radius })
-                            }}
-                            className="flex-1 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm"
-                        />
-                        </div>
-                    </div>
+                      </div>
                     )}
 
                     {/* Para Input */}
                     {selectedComponent.type === 'input' && (
-                    <div className="space-y-3">
-                        {/* Placeholder */}
-                        <div className="flex items-center justify-between gap-2">
-                        <label className="text-gray-600 dark:text-gray-300 w-28">Placeholder:</label>
-                        <input
-                            value={selectedComponent.placeholder ?? ''}
-                            onChange={(e) => { setSelectedComponent({ ...selectedComponent, placeholder: e.target.value }) }}
-                            className="flex-1 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm w-full"
+                      <div className="space-y-3">
+                          <InputTools
+                              component={selectedComponent}
+                              setComponent={(updated) => { setSelectedComponent(updated) }}
+                          />
+                          <div className='h-72'>
+                          </div>
+                      </div>
+                    )}
+                    {selectedComponent.type === 'header' && (
+                      <div className="space-y-3">
+                        <HeaderTools
+                          component={selectedComponent}
+                          setComponent={setSelectedComponent}
+                          project={project}
+                          openTitleIconPicker={openTitleIconPicker}
+                          openSectionIconPicker={openIconPicker}
                         />
-                        </div>
-
-                        {/* Border radius */}
-                        <div className="flex items-center justify-between gap-2">
-                        <label className="text-gray-600 dark:text-gray-300 w-28">Bordes:</label>
-                        <input
-                            type="number"
-                            min={0}
-                            value={parseInt(selectedComponent.borderRadius ?? '6')}
-                            onChange={(e) => {
-                              const radius = `${e.target.value}px`
-                              setSelectedComponent({ ...selectedComponent, borderRadius: radius })
-                            }}
-                            className="flex-1 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm"
-                        />
+                        <div className='h-72'>
                         </div>
                     </div>
                     )}
@@ -742,122 +736,6 @@ export default function RightSidebar() {
                           </div>
                         </div>
 
-                      </div>
-                    )}
-
-                    {/* Para Header */}
-                    {selectedComponent.type === 'header' && (
-                      <div className="space-y-4">
-                        {/* Background color */}
-                        <div className="flex items-center justify-between gap-2">
-                          <label className="text-gray-600 dark:text-gray-300 w-28">Color fondo:</label>
-                          <input
-                            type="color"
-                            value={selectedComponent.backgroundColor ?? '#0f172a'}
-                            onChange={(e) => {
-                              setSelectedComponent({ ...selectedComponent, backgroundColor: e.target.value })
-                            }}
-                            className="w-10 h-6 rounded border border-gray-300 dark:border-gray-600"
-                          />
-                        </div>
-
-                        {/* Color de sección activa */}
-                        <div className="flex items-center justify-between gap-2">
-                          <label className="text-gray-600 dark:text-gray-300 w-28">Color activo:</label>
-                          <input
-                            type="color"
-                            value={selectedComponent.activeColor ?? '#3b82f6'}
-                            onChange={(e) => {
-                              setSelectedComponent({ ...selectedComponent, activeColor: e.target.value })
-                            }}
-                            className="w-10 h-6 rounded border border-gray-300 dark:border-gray-600"
-                          />
-                        </div>
-
-                        {/* Secciones del breadcrumb */}
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-2 gap-2 items-center text-xs font-semibold text-gray-600 dark:text-gray-300">
-                            <span>Label</span>
-                            <span>Ruta</span>
-                          </div>
-
-                          {selectedComponent.sections.map((sec, idx) => (
-                            <div key={idx} className="grid grid-cols-2 gap-2 items-center">
-                              <input
-                                value={sec.label}
-                                onChange={(e) => {
-                                  const updated = [...selectedComponent.sections]
-                                  updated[idx].label = e.target.value
-                                  setSelectedComponent({ ...selectedComponent, sections: updated })
-                                }}
-                                className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm"
-                              />
-
-                              <select
-                                value={sec.route}
-                                onChange={(e) => {
-                                  const updated = [...selectedComponent.sections]
-                                  updated[idx].route = e.target.value
-                                  setSelectedComponent({ ...selectedComponent, sections: updated })
-                                }}
-                                className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm"
-                              >
-                                <option value="">—</option>
-                                {Array.isArray(project?.pages) &&
-                                  project.pages.map((page: any) => (
-                                    <option key={page.id} value={page.id}>
-                                      {page.name}
-                                    </option>
-                                  ))}
-                              </select>
-                            </div>
-                          ))}
-
-                          <div className="flex justify-center mt-4">
-                            <Button
-                              onClick={() => {
-                                const updated = [...selectedComponent.sections, { label: 'Nuevo', route: '' }]
-                                setSelectedComponent({ ...selectedComponent, sections: updated })
-                              }}
-                              className="text-sm px-4 py-2 rounded w-full transition"
-                            >
-                              + Agregar sección
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Botones de acción (icon buttons) */}
-                        <div className="space-y-2 mt-6">
-                          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Botones (Iconos)</h4>
-
-                          {selectedComponent.buttons.map((btn, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <button
-                                onClick={() => {
-                                  setEditingHeaderButtonIndex(idx)
-                                  setIsHeaderButtonIconPickerOpen(true)
-                                }}
-                                className="border rounded flex items-center justify-center bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 w-full h-10"
-                              >
-                                <i className={`fa fa-${btn.icon} text-lg`}></i>
-                              </button>
-                            </div>
-                          ))}
-
-                          <div className="flex justify-center mt-4">
-                            <Button
-                              onClick={() => {
-                                const updated = [...selectedComponent.buttons, { icon: 'fa-bell' }]
-                                setSelectedComponent({ ...selectedComponent, buttons: updated })
-                              }}
-                              className="text-sm px-4 py-2 rounded w-full transition"
-                            >
-                              + Agregar botón
-                            </Button>
-                          </div>
-                        </div>
-                        <div className='h-72'>
-                        </div>
                       </div>
                     )}
 

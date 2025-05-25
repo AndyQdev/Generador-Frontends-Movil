@@ -15,145 +15,8 @@ import Canvas from './Canvas'
 import { useParams } from 'react-router-dom'
 import { connectSocket, getSocket } from '@/lib/socket'
 import throttle from 'lodash.throttle'
+import { type ButtonComponent, type ChecklistComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent } from '../models/Components'
 
-export interface BaseComponent {
-  id: string
-  x: number
-  y: number
-  width: number
-  height: number
-  styles?: string // clases tailwind que quieras aplicar
-  is_locked?: boolean
-  z_index?: number
-  label?: string
-}
-export interface SidebarComponent extends BaseComponent {
-  type: 'sidebar'
-  title: string
-  titleIcon?: string // nuevo campo para el icono del título
-  mainColor?: string // nuevo campo: color principal para íconos, secciones activas, botón config
-  asideBg?: string // nuevo campo: fondo total del sidebar
-  sections: Array<{
-    icon: string
-    label: string
-    route: string
-  }>
-  select?: number
-}
-// Componentes que faltan crear ---------------------------------------------------------------
-
-export interface LabelComponent extends BaseComponent {
-  backgroundColor: string
-  route: string
-  type: 'label'
-  text: string
-  fontSize?: string
-}
-
-export interface SearchComponent extends BaseComponent {
-  type: 'search'
-  placeholder: string
-}
-
-export interface PaginationComponent extends BaseComponent {
-  type: 'pagination'
-  totalPages: number
-  currentPage: number
-}
-
-export interface HeaderComponent extends BaseComponent {
-  type: 'header'
-  backgroundColor?: string
-  sections: Array<{
-    label: string
-    route: string
-  }>
-  buttons: Array<{
-    icon: string
-    action?: string // acción futura si quieres asociarlo
-  }>
-  activeColor?: string // color para la sección seleccionada (ej: azul para "Proyectos")
-}
-
-export interface SelectComponent extends BaseComponent {
-  type: 'select'
-  options: string[]
-  value?: string
-}
-
-export interface DialogComponent extends BaseComponent {
-  type: 'dialog'
-  title: string
-  fields: Array<{
-    label: string
-    type: SelectComponent | InputComponent
-  }>
-}
-// ---------------------------------------------------------------
-
-export interface ButtonComponent extends BaseComponent {
-  type: 'button'
-  label: string
-  backgroundColor?: string
-  borderRadius?: string
-  route?: string
-}
-
-export interface InputComponent extends BaseComponent {
-  type: 'input'
-  placeholder?: string
-  borderRadius?: string
-  value?: string
-}
-export interface DataTableComponent extends BaseComponent {
-  type: 'datatable'
-  headers: string[] // Ej: ['Id', 'Nombre', 'Descripción']
-  rows: string[][] // Ej: [['1', 'Proyecto X', 'Descripción...'], ...]
-  backgroundColor?: string
-}
-export interface ListarComponent extends Omit<BaseComponent, 'label'> {
-  type: 'listar'
-  button: ButtonComponent
-  dataTable: DataTableComponent
-  label: LabelComponent
-  search: SearchComponent
-  pagination: PaginationComponent
-  dialog: DialogComponent
-}
-
-export interface CardComponent extends BaseComponent {
-  type: 'card'
-  backgroundColor?: string
-  borderRadius?: string
-  padding?: string
-  shadow?: boolean
-}
-
-export interface LoginComponent extends Omit<BaseComponent, 'label'> {
-  type: 'login'
-  card: CardComponent
-  title: LabelComponent
-  subtitle: LabelComponent
-  emailInput: InputComponent
-  passwordInput: InputComponent
-  loginButton: ButtonComponent
-  googleButton: ButtonComponent
-  signupLink: LabelComponent
-}
-export interface ChecklistComponent extends BaseComponent {
-  type: 'checklist'
-  items: Array<{
-    label: string
-    checked: boolean
-  }>
-  title?: string
-}
-export interface RadioButtonComponent extends BaseComponent {
-  type: 'radiobutton'
-  options: string[]
-  selected?: string
-  name?: string // grupo común
-}
 export type ComponentItem =
   | ButtonComponent
   | InputComponent
@@ -163,11 +26,11 @@ export type ComponentItem =
   | SearchComponent
   | PaginationComponent
   | ListarComponent
-  | HeaderComponent
   | LoginComponent
   | SelectComponent
   | ChecklistComponent
   | RadioButtonComponent
+  | HeaderComponent
 
 interface Page {
   id: string
@@ -358,9 +221,6 @@ export default function Editor() {
             return next
           })
         })
-        // socket.on('component_props_changed', (payload) => {
-        //   console.log('RX props_changed: ', payload) // 👈
-        // })
       }
     }
   }, [activeProject?.id])
@@ -435,7 +295,21 @@ export default function Editor() {
             y,
             width: 200,
             height: 50,
-            styles: 'flex items-center bg-blue justify-center w-full h-full text-white'
+            style: {
+              backgroundColor: '#2563eb',
+              borderRadius: 8,
+              padding: {
+                top: 8,
+                bottom: 8,
+                left: 12,
+                right: 12
+              },
+              textStyle: {
+                fontSize: 16,
+                fontWeight: 'bold',
+                color: '#ffffff'
+              }
+            }
           }
         case 'input':
           return {
@@ -446,313 +320,50 @@ export default function Editor() {
             y,
             width: 200,
             height: 40,
-            styles: 'block w-full bg-white text-black h-full p-1 '
-          }
-        // Aquí puedes agregar más casos para otros tipos de componentes
-        case 'sidebar':
-          return {
-            id: Date.now().toString(),
-            type: 'sidebar',
-            title: 'UI SKETCH',
-            x,
-            y,
-            width: 257,
-            height: 700,
-            select: 0,
-            styles: 'bg-white shadow-lg p-4',
-            asideBg: '#ffffff',
-            mainColor: '#a855f7',
-            sections: [
-              { icon: 'home', label: 'Inicio', route: '' },
-              { icon: 'file', label: 'Documentos', route: '' },
-              { icon: 'cog', label: 'Configuración', route: '' }
-            ]
-          }
-        case 'datatable':
-          return {
-            id: Date.now().toString(),
-            type: 'datatable',
-            x,
-            y,
-            width: 900,
-            height: 300,
-            styles: '',
-            headers: ['Id', 'Nombre', 'Descripción', 'Fecha', 'Estado'],
-            backgroundColor: '#ffffff',
-            rows: [
-              ['1', 'Proyecto Interfaces', 'Este proyecto será para construir interfaces dinámicas...', '15 abr 2025', 'En proceso']
-            ]
-          }
-        case 'listar':
-          // eslint-disable-next-line no-case-declarations
-          const headers = ['Id', 'Nombre', 'Descripción', 'Fecha de creación', 'Estado']
-          return {
-            id: Date.now().toString(),
-            type: 'listar',
-            x,
-            y,
-            width: 1000,
-            height: 500,
-            styles: '',
-            button: {
-              id: `${Date.now()}-btn`,
-              type: 'button',
-              label: 'Agregar',
-              x: 0,
-              y: 0,
-              width: 120,
-              height: 40,
-              styles: 'bg-blue-600 text-white px-4 py-2 rounded'
-            },
-            label: {
-              id: `${Date.now()}-lbl`,
-              type: 'label',
-              text: 'Todos los Proyectos',
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 30,
-              styles: 'text-lg font-semibold text-black'
-            },
-            search: {
-              id: `${Date.now()}-search`,
-              type: 'search',
-              placeholder: 'Buscar por nombre...',
-              x: 0,
-              y: 0,
-              width: 250,
-              height: 40,
-              styles: 'border-gray-300 rounded bg-white px-3 py-1'
-            },
-            dataTable: {
-              id: `${Date.now()}-table`,
-              type: 'datatable',
-              x: 0,
-              y: 0,
-              width: 1000,
-              height: 200,
-              styles: '',
-              headers,
+            style: {
               backgroundColor: '#ffffff',
-              rows: [
-                ['1', 'Proyecto Interfaces', 'Este proyecto será para construir interfaces dinámicas...', '15 abr 2025', 'En proceso']
-              ]
-            },
-            pagination: {
-              id: `${Date.now()}-pg`,
-              type: 'pagination',
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 40,
-              styles: 'text-black',
-              currentPage: 1,
-              totalPages: 5
-            },
-            dialog: {
-              id: `${Date.now()}-dialog`,
-              type: 'dialog',
-              x: 0,
-              y: 0,
-              width: 400,
-              height: 500,
-              styles: '',
-              title: 'Agregar nuevo proyecto',
-              fields: headers.map((header) => ({
-                label: header,
-                type: {
-                  id: `${Date.now()}-input-${header}`,
-                  type: 'input',
-                  x: 0,
-                  y: 0,
-                  width: 300,
-                  height: 40,
-                  styles: 'border border-gray-300 bg-white rounded px-2 py-1',
-                  placeholder: `Ingrese ${header.toLowerCase()}`,
-                  value: ''
-                }
-              }))
+              borderRadius: 6,
+              padding: {
+                top: 6,
+                bottom: 6,
+                left: 10,
+                right: 10
+              },
+              textStyle: {
+                fontSize: 14,
+                color: '#111827'
+              }
             }
           }
         case 'header':
+          // eslint-disable-next-line no-case-declarations
+          const sidebarId = Date.now().toString() + '-sb'
           return {
             id: Date.now().toString(),
             type: 'header',
             x,
             y,
-            width: 1200,
-            height: 70,
-            styles: 'flex justify-between items-center p-4 border border-gray-300',
-            backgroundColor: '#ffffff', // 👈 fondo oscuro por defecto
-            sections: [
-              { label: 'Espacio de Trabajo', route: '' },
-              { label: 'Proyectos', route: '' }
-            ],
-            buttons: [
-              { icon: 'bell' }, // campanita
-              { icon: 'user' } // usuario
-            ],
-            activeColor: '#3b82f6' // azulito
-          }
-        case 'login':
-          // eslint-disable-next-line no-case-declarations
-          const now = Date.now()
-          return {
-            id: now.toString(),
-            type: 'login',
-            x,
-            y,
-            width: 400,
-            height: 400,
-            styles: '',
-
-            // Card que envuelve todo
-            card: {
-              id: `${now}-card`,
-              type: 'card',
+            width: 390,
+            height: 56,
+            title: 'UI-SKETCH',
+            color: '#2563eb',
+            sidebar: {
+              id: sidebarId,
+              type: 'sidebar',
+              title: 'UI-SKETCH',
               x: 0,
               y: 0,
-              width: 400,
-              height: 600,
-              styles: 'p-6 flex flex-col items-center justify-center gap-4',
-              backgroundColor: '#ffffff',
-              borderRadius: '0.5rem', // 8px
-              padding: '1.5rem',
-              shadow: true
-            },
-
-            // Título
-            title: {
-              id: `${now}-title`,
-              type: 'label',
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 30,
-              text: 'Login',
-              styles: 'text-2xl font-bold text-black'
-            },
-
-            // Subtítulo
-            subtitle: {
-              id: `${now}-subtitle`,
-              type: 'label',
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 20,
-              text: 'Enter your email below to login to your account',
-              styles: 'text-gray-500 text-sm'
-            },
-
-            // Input de email
-            emailInput: {
-              id: `${now}-email`,
-              type: 'input',
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 40,
-              styles: 'border border-gray-300 bg-white rounded px-3 py-2 w-full',
-              placeholder: 'm@example.com',
-              borderRadius: '0.375rem',
-              value: ''
-            },
-
-            // Input de contraseña
-            passwordInput: {
-              id: `${now}-password`,
-              type: 'input',
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 40,
-              styles: 'border border-gray-300 bg-white rounded px-3 py-2 w-full',
-              placeholder: '',
-              borderRadius: '0.375rem',
-              value: ''
-            },
-
-            // Botón de Login
-            loginButton: {
-              id: `${now}-login-button`,
-              type: 'button',
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 40,
-              styles: 'bg-black text-white w-full py-2 rounded',
-              label: 'Login',
-              backgroundColor: '#000000',
-              borderRadius: '0.375rem'
-            },
-
-            // Botón de Login con Google
-            googleButton: {
-              id: `${now}-google-button`,
-              type: 'button',
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 40,
-              styles: 'bg-white text-black border border-gray-300 w-full py-2 rounded',
-              label: 'Login with Google',
-              backgroundColor: '#ffffff',
-              borderRadius: '0.375rem'
-            },
-
-            // Texto de "Don't have an account? Sign up"
-            signupLink: {
-              id: `${now}-signup`,
-              type: 'label',
-              x: 0,
-              y: 0,
-              width: 300,
-              height: 20,
-              text: "Don't have an account? Sign up",
-              styles: 'text-sm text-gray-600'
+              width: 256,
+              height: 700,
+              mainColor: '#2563eb',
+              asideBg: '#ffffff',
+              select: 0,
+              sections: [
+                { icon: 'home', label: 'Inicio', route: '' },
+                { icon: 'file', label: 'Docs', route: '' },
+                { icon: 'cog', label: 'Config', route: '' }
+              ]
             }
-          }
-        case 'select':
-          return {
-            id: Date.now().toString(),
-            type: 'select',
-            x,
-            y,
-            width: 200,
-            height: 40,
-            styles: 'w-full p-2 border border-gray-300 bg-white rounded text-black',
-            options: ['Opción 1', 'Opción 2', 'Opción 3'],
-            value: 'Opción 1'
-          }
-        case 'checklist':
-          return {
-            id: Date.now().toString(),
-            type: 'checklist',
-            x,
-            y,
-            width: 300,
-            height: 200,
-            styles: 'p-4 bg-white rounded shadow space-y-2 text-black',
-            title: 'Tareas Pendientes',
-            items: [
-              { label: 'Tarea 1', checked: false },
-              { label: 'Tarea 2', checked: true },
-              { label: 'Tarea 3', checked: false }
-            ]
-          }
-        case 'radiobutton':
-          return {
-            id: Date.now().toString(),
-            type: 'radiobutton',
-            x,
-            y,
-            width: 300,
-            height: 120,
-            styles: 'space-y-2 p-3 bg-white rounded shadow text-black',
-            options: ['Opción A', 'Opción B', 'Opción C'],
-            selected: 'Opción A',
-            name: `radio-group-${Date.now()}`
           }
         default:
           throw new Error(`Tipo de componente desconocido: ${type}`)
