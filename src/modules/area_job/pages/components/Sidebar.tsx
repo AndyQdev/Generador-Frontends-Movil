@@ -18,12 +18,15 @@ export default function Sidebar({
   return (
     <aside
       className={cn(
-        'absolute top-0 left-0 bottom-0 z-50 flex flex-col border-r overflow-hidden',
-        'w-64', // ancho fijo
+        'absolute left-0 bottom-0 z-50 flex flex-col border-r overflow-hidden',
+        'w-64',
         'transform transition-transform duration-300',
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}
-      style={{ backgroundColor: asideBg }}
+      style={{
+        backgroundColor: asideBg,
+        top: '1.5rem' // ← 24 px (status bar)
+      }}
     >
       {/* ╭─ Header ────────────────────────────────╮ */}
       <div className="flex items-center justify-between px-4 py-3 border-b">

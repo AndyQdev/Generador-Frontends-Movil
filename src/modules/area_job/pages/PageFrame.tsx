@@ -79,7 +79,7 @@ export default function PageFrame({
     <div ref={pageRef}
       style={{ width: device.width, height: device.height }}
       className={cn(
-        'relative shadow-lg border overflow-hidden bg-[#D9D9D9]',
+        'relative shadow-lg border overflow-hidden bg-[#D9D9D9] rounded-3xl',
         selected ? 'ring-2 ring-blue-500' : 'border-gray-400'
       )}
       onClick={(e) => {
@@ -107,6 +107,38 @@ export default function PageFrame({
         }
       }}
     >
+      <div
+        className="
+          absolute top-0 left-0 z-50
+          w-full h-6
+          flex items-center justify-between
+          px-2
+          text-[10px] font-semibold tracking-wider
+          text-gray-800
+          bg-white/80 backdrop-blur
+          pointer-events-none
+        "
+      >
+        {/* Hora */}
+        <span>9:41</span>
+
+        {/* Indicadores a la derecha */}
+        <div className="flex items-center gap-1">
+          <i className="fa fa-signal" />
+          <i className="fa fa-wifi" />
+          <i className="fa fa-battery-three-quarters" />
+        </div>
+      </div>
+
+      {/* ───────────────── Home-indicator (opcional) ───────────────── */}
+      <div
+        className="
+          absolute left-1/2 -translate-x-1/2 bottom-1
+          w-20 h-1.5 rounded-full
+          bg-gray-500/60
+          pointer-events-none
+        "
+      />
       {/* Renderizar los componentes de la página */}
       {page.components.map((comp, index) => (
         <Rnd
