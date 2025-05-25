@@ -95,7 +95,11 @@ function Navigation() {
                                 to={child.path!}
                                 className={`${selectedMenu === child.path ? 'dark:bg-[#374151] text-light-primary dark:text-light-bg-secondary font-semibold' : 'text-light-text-secondary dark:text-dark-text-secondary'} h-10 flex items-center gap-3 rounded-lg px-3 py-2 mt-1 transition-all hover:bg-light-primary/5 hover:dark:bg-dark-border text-base font-normal w-full`}
                               >
-                                {child.icon}
+                                {child.icon && (
+                            <div className="w-5 h-5 shrink-0">
+                              {child.icon}
+                              </div>
+                                )}
                                 <span className={`${isContract ? 'hidden' : ''} overflow-hidden text-ellipsis whitespace-nowrap`}>{child.label}</span>
                               </Link>
                             )
