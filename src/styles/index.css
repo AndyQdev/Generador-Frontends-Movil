@@ -13,6 +13,17 @@
 .react-transform-component {
   transform-origin: top left !important;
 }
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typing-cursor::after {
+  content: '|';
+  animation: blink 1s infinite;
+  margin-left: 2px;
+  color: #22c55e; /* Tailwind: text-green-500 */
+}
 
 .dark * {
   border-color: #27272a;
