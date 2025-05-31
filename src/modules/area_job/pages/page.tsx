@@ -355,10 +355,10 @@ export default function Editor() {
           return {
             id: Date.now().toString(),
             type: 'header',
-            x,
-            y,
-            width: 390,
-            height: 56,
+            x: xPercent,
+            y: yPercent,
+            width: (390 / containerRect.width) * 100, // ✅ en porcentaje
+            height: (56 / containerRect.height) * 100,
             title: 'UI-SKETCH',
             color: '#2563eb',
             sidebar: {
@@ -367,8 +367,8 @@ export default function Editor() {
               title: 'UI-SKETCH',
               x: 0,
               y: 0,
-              width: 256,
-              height: 700,
+              width: (256 / containerRect.width) * 100, // ✅ en porcentaje
+              height: (700 / containerRect.height) * 100,
               mainColor: '#2563eb',
               asideBg: '#ffffff',
               select: 0,
@@ -470,7 +470,7 @@ export default function Editor() {
         setSelectedImage(null)
         setSelectedButtonId(null)
         toast.success('Página creada exitosamente')
-      })
+      }, 8, 2)
     } catch (e) {
       stopDots()
       toast.error('No se pudo crear la página')
@@ -550,8 +550,8 @@ export default function Editor() {
   const typeCode = (
     full: string,
     onComplete?: () => void,
-    step = 8,
-    delay = 14
+    step = 2,
+    delay = 10
   ) => {
     let idx = 0
     const int = setInterval(() => {
