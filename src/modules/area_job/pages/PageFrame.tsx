@@ -9,7 +9,6 @@ import throttle from 'lodash.throttle'
 import { type Device } from '../utils/devices'
 import Button from './components/ButtonComponent'
 import Input from './components/Input'
-import Sidebar from './components/Sidebar'
 import Header from './components/header'
 
 interface PageFrameProps {
@@ -47,12 +46,8 @@ export default function PageFrame({
   device
 }: PageFrameProps) {
   let isDragging = false
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [openDialogs, setOpenDialogs] = useState<Record<string, boolean>>({})
-  const toggleSidebar = () => { setIsSidebarOpen(prev => !prev) }
-  const [openRowMenu, setOpenRowMenu] = useState<number | null>(null)
   const [formValues, setFormValues] = useState<Record<string, string>>({})
-  const [, setEditRowIndex] = useState<number | null>(null)
   const [confirmDeleteRowIndex, setConfirmDeleteRowIndex] = useState<number | null>(null)
   const { setSelectedPage } = useComponentContext()
   const socket = getSocket()
@@ -75,6 +70,8 @@ export default function PageFrame({
       origin: socket?.id
     })
   }, 50)
+  const toPx = (pct: number, base: number) => (pct / 100) * base
+  const toPct = (px: number, base: number) => (px / base) * 100
   return (
     <div ref={pageRef}
       style={{ width: device.width, height: device.height }}
@@ -143,8 +140,14 @@ export default function PageFrame({
       {page.components.map((comp, index) => (
         <Rnd
           key={comp.id}
-          size={{ width: comp.width, height: comp.height }}
-          position={{ x: comp.x, y: comp.y }}
+          size={{
+            width: toPx(comp.width, device.width),
+            height: toPx(comp.height, device.height)
+          }}
+          position={{
+            x: toPx(comp.x, device.width),
+            y: toPx(comp.y, device.height)
+          }}
           scale={scale}
           disableDragging={page.id !== currentPageId}
           enableResizing={page.id === currentPageId}
@@ -157,15 +160,19 @@ export default function PageFrame({
           }}
           onDrag={(_e, d) => {
             if (page.id !== currentPageId) return
-            emitMove(comp, d.x, d.y) // 👈 envía frame
+            emitMove(
+              comp,
+              toPct(d.x, device.width),
+              toPct(d.y, device.height)
+            )
           }}
-          onResize={(_e, _direction, ref, _delta, position) => {
+          onResize={(_e, _dir, ref, _delta, pos) => {
             emitResize(
               comp,
-              parseInt(ref.style.width),
-              parseInt(ref.style.height),
-              position.x,
-              position.y
+              toPct(parseInt(ref.style.width), device.width),
+              toPct(parseInt(ref.style.height), device.height),
+              toPct(pos.x, device.width),
+              toPct(pos.y, device.height)
             )
           }}
           onDragStart={(e) => {
@@ -177,15 +184,19 @@ export default function PageFrame({
           }}
           onDragStop={(_e, d) => {
             isDragging = false
-            updateComponent(pageIndex, index, { ...comp, x: d.x, y: d.y })
+            updateComponent(pageIndex, index, {
+              ...comp,
+              x: toPct(d.x, device.width),
+              y: toPct(d.y, device.height)
+            })
             const socket = getSocket()
             socket?.emit('component_updated', {
               project_id: currentProjectId, // El id del proyecto activo
               page_id: page.id,
               component: {
                 ...comp,
-                x: d.x,
-                y: d.y,
+                x: toPct(d.x, device.width),
+                y: toPct(d.y, device.height),
                 width: comp.width,
                 height: comp.height
               }
@@ -196,10 +207,10 @@ export default function PageFrame({
               pageIndex,
               index, {
                 ...comp,
-                width: parseInt(ref.style.width),
-                height: parseInt(ref.style.height),
-                x: position.x,
-                y: position.y
+                width: toPct(parseInt(ref.style.width), device.width),
+                height: toPct(parseInt(ref.style.height), device.height),
+                x: toPct(position.x, device.width),
+                y: toPct(position.y, device.height)
               })
             const socket = getSocket()
             socket?.emit('component_updated', {

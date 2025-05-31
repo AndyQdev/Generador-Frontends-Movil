@@ -9,13 +9,14 @@ import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialogHeader } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
-import { HexColorPicker } from 'react-colorful'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Canvas from './Canvas'
 import { useParams } from 'react-router-dom'
 import { connectSocket, getSocket } from '@/lib/socket'
 import throttle from 'lodash.throttle'
 import { type ButtonComponent, type ChecklistComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent } from '../models/Components'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 export type ComponentItem =
   | ButtonComponent
@@ -72,6 +73,13 @@ export default function Editor() {
   const [newBg, setNewBg] = useState('#ffffff')
   const [creating, setCreating] = useState(false)
   const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  const [isGenerating, setIsGenerating] = useState(false) // IA en curso
+  const [loadingMsg, setLoadingMsg] = useState('') // dots animados
+  const [genCode, setGenCode] = useState<string | null>(null)
+  const dotsRef = useRef<NodeJS.Timeout | null>(null)
   useEffect(() => {
     if (!activeProject) return
     setPages(activeProject.pages ?? [])
@@ -276,6 +284,7 @@ export default function Editor() {
 
     throttledEmit(selectedComponent)
   }, [selectedComponent])
+  console.log('🔵 Páginas actuales:', pages)
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string, scale: number) => {
     const socket = getSocket()
 
@@ -284,6 +293,11 @@ export default function Editor() {
     const containerRect = e.currentTarget.getBoundingClientRect()
     const x = (e.clientX - containerRect.left) / scale
     const y = (e.clientY - containerRect.top) / scale
+    const xPercent = ((e.clientX - containerRect.left) / containerRect.width) * 100
+    const yPercent = ((e.clientY - containerRect.top) / containerRect.height) * 100
+    const widthPercent = (200 / containerRect.width) * 100
+    const heightPercent = (50 / containerRect.height) * 100
+
     const newComponent = (() => {
       switch (type) {
         case 'button':
@@ -291,10 +305,10 @@ export default function Editor() {
             id: Date.now().toString(),
             type: 'button',
             label: 'Botón',
-            x,
-            y,
-            width: 200,
-            height: 50,
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent,
             style: {
               backgroundColor: '#2563eb',
               borderRadius: 8,
@@ -316,10 +330,10 @@ export default function Editor() {
             id: Date.now().toString(),
             type: 'input',
             placeholder: 'Escribir placeholder...',
-            x,
-            y,
-            width: 200,
-            height: 40,
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent,
             style: {
               backgroundColor: '#ffffff',
               borderRadius: 6,
@@ -404,43 +418,65 @@ export default function Editor() {
   }
 
   const handleCreatePage = async () => {
-    if (!newName.trim()) return // nombre vacío
-
+    if (!newName.trim()) return
     setCreating(true)
+    setIsGenerating(true)
+    setPreviewUrl(null)
+    startDots()
     try {
-      // Crear la nueva página
-      // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
-      const newPage: any = await createPage({
-        name: newName,
-        background_color: newBg,
-        components: []
+      const formData = new FormData()
+      formData.append('name', newName)
+
+      if (selectedImage) {
+        formData.append('img', selectedImage) // clave debe ser exactamente 'img'
+      }
+      const response = await fetch(`${API_BASEURL}${ENDPOINTS.PROJECTS}/${activeProject?.id}/pages`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
       })
-      if (newPage !== undefined && newPage !== null) {
-        // Actualizar el botón seleccionado con el ID de la nueva página
+
+      if (!response.ok) throw new Error('No se pudo crear la página')
+
+      const { data: createdPage } = await response.json()
+
+      stopDots()
+      const pretty = JSON.stringify(createdPage.components ?? [], null, 2)
+
+      typeCode(pretty, () => {
+        /* actualiza botón -> ruta */
         if (selectedButtonId) {
-          const updatedPages = [...pages]
-          for (const page of updatedPages) {
-            const button = page.components.find(
-              (comp) => comp.type === 'button' && comp.id === selectedButtonId
+          const updated = [...pages]
+          for (const page of updated) {
+            const btn = page.components.find(
+              (c) => c.type === 'button' && c.id === selectedButtonId
             ) as ButtonComponent | undefined
-            if (button) {
-              button.route = newPage.id // Usar el ID de la página creada
+            if (btn) {
+              btn.route = createdPage.id
               break
             }
           }
-          setPages(updatedPages)
+          setPages(updated)
         }
 
-        setPages([...pages, newPage]) // Agregar la nueva página a la lista de páginas
+        /* agrega la nueva página */
+        setPages(prev => [...prev, createdPage])
+
+        /* cierra diálogo y limpia */
         setOpenDlg(false)
         setNewName('')
-        setSelectedButtonId(null) // Limpiar selección
-        toast.success('Página creada')
-      }
+        setSelectedImage(null)
+        setSelectedButtonId(null)
+        toast.success('Página creada exitosamente')
+      })
     } catch (e) {
+      stopDots()
       toast.error('No se pudo crear la página')
     } finally {
       setCreating(false)
+      setIsGenerating(false)
     }
   }
 
@@ -500,83 +536,141 @@ export default function Editor() {
     }
   }
   const currentPage = pages[currentPageIndex] ?? null
-
+  const startDots = () => {
+    let i = 0
+    dotsRef.current = setInterval(() => {
+      i = (i + 1) % 4
+      setLoadingMsg(`🛠️ Generando boceto con IA${'.'.repeat(i)}`)
+    }, 400)
+  }
+  const stopDots = () => {
+    if (dotsRef.current) clearInterval(dotsRef.current)
+    setLoadingMsg('')
+  }
+  const typeCode = (
+    full: string,
+    onComplete?: () => void,
+    step = 8,
+    delay = 14
+  ) => {
+    let idx = 0
+    const int = setInterval(() => {
+      if (idx <= full.length) {
+        setGenCode(full.slice(0, idx))
+        idx += step
+      } else {
+        clearInterval(int)
+        onComplete?.() // 🔔 dispara aquí
+      }
+    }, delay)
+  }
   return (
     <div className="flex flex-col h-screen w-full">
 
     {/* ------------ Diálogo Crear página ------------- */}
     <Dialog open={openDlg} onOpenChange={setOpenDlg}>
-      <DialogContent>
-        <AlertDialogHeader>
-          <DialogTitle>Nueva página</DialogTitle>
-        </AlertDialogHeader>
+        <DialogContent>
+          <AlertDialogHeader>
+            <DialogTitle>Nueva página</DialogTitle>
+          </AlertDialogHeader>
 
-        <div className="space-y-4">
-          {/* Nombre */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Nombre</label>
-            <Input
-              value={newName}
-              onChange={e => { setNewName(e.target.value) }}
-              placeholder="Página de inicio…"
-            />
-          </div>
-
-          {/* Selector de color */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Color de fondo</label>
-
-            {/* preview + código */}
-            <div className="flex items-center gap-3">
-              <span
-                className="block w-8 h-8 rounded border"
-                style={{ backgroundColor: newBg }}
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Nombre</label>
+              <Input
+                value={newName}
+                onChange={e => { setNewName(e.target.value) }}
+                placeholder="Página de inicio…"
               />
-              <code className="text-sm">{newBg}</code>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Asociar a botón</label>
+              <Select
+                value={selectedButtonId ?? ''}
+                onValueChange={(value) => { setSelectedButtonId(value) }}
+              >
+                <SelectTrigger className="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                  <SelectValue placeholder="Seleccionar botón..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {allButtons.map((button) => (
+                    <SelectItem key={button.id} value={button.id}>
+                      {button.label} (Página: {button.pageName})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Imagen de boceto (opcional)</label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null
+                  setSelectedImage(file)
+
+                  if (file) {
+                    const url = URL.createObjectURL(file)
+                    setPreviewUrl(url)
+                  } else {
+                    setPreviewUrl(null)
+                  }
+                }}
+              />
+              <div className="mt-3 h-[300px] overflow-y-auto border rounded-md bg-muted p-2">
+                {/* Mostrar imagen solo si no se está generando */}
+                {!isGenerating && previewUrl && (
+                  <img
+                    src={previewUrl}
+                    className="w-full max-h-full object-cover rounded"
+                    alt="Previsualización del boceto"
+                  />
+                )}
+
+                {/* Mostrar mensaje de carga animado */}
+                {isGenerating && !genCode && (
+                  <p className="text-sm font-medium whitespace-pre-line">{loadingMsg}</p>
+                )}
+
+                {/* Mostrar código generado con scroll interno */}
+                {genCode && (
+                  <SyntaxHighlighter
+                    language="json"
+                    style={oneDark}
+                    wrapLongLines
+                    customStyle={{
+                      fontSize: '0.75rem',
+                      background: 'transparent',
+                      margin: 0,
+                      padding: 0
+                    }}
+                  >
+                    {genCode}
+                  </SyntaxHighlighter>
+                )}
+              </div>
             </div>
 
-            {/* Color picker */}
-            <HexColorPicker color={newBg} onChange={setNewBg} className="rounded-md shadow" />
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                disabled={creating || isGenerating}
+                onClick={() => { setOpenDlg(false) }}
+                className="px-3 py-1.5 text-sm rounded border hover:bg-gray-100 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={creating}
+                onClick={handleCreatePage}
+                className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Guardar
+              </button>
+            </div>
           </div>
-          {/* Selector de botón */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Asociar a botón</label>
-            <Select
-              value={selectedButtonId ?? ''}
-              onValueChange={(value) => { setSelectedButtonId(value) }}
-            >
-              <SelectTrigger className="w-full border border-gray-300 rounded px-2 py-1 text-sm">
-                <SelectValue placeholder="Seleccionar botón..." />
-              </SelectTrigger>
-              <SelectContent>
-                {/* <SelectItem value="">Seleccionar botón...</SelectItem> */}
-                {allButtons.map((button) => (
-                  <SelectItem key={button.id} value={button.id}>
-                    {button.label} (Página: {button.pageName})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              onClick={() => { setOpenDlg(false) }}
-              className="px-3 py-1.5 text-sm rounded border hover:bg-gray-100"
-            >
-              Cancelar
-            </button>
-            <button
-              disabled={creating}
-              onClick={handleCreatePage}
-              className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              Guardar
-            </button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
       {/* Lienzo */}
       <Canvas
         pages={pages}

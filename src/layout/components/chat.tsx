@@ -109,6 +109,7 @@ const ChatSidebar = () => {
       if (!response.ok) throw new Error('Error en la respuesta del servidor')
 
       const data = await response.json()
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (data?.page) setPendingPage(data.page)
       const pageFromServer = data.page
       // Elimina el mensaje de "IA trabajando..."
@@ -116,7 +117,7 @@ const ChatSidebar = () => {
       stopLoadingDots()
       // Añade el mensaje con el código del componente
       const animatedContent = `✅ Componente generado:\n\`\`\`json\n${JSON.stringify(
-        data.component,
+        data.components,
         null,
         2
       )}\n\`\`\``
