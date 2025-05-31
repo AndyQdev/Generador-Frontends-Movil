@@ -357,9 +357,10 @@ export default function Editor() {
           return {
             id: Date.now().toString(),
             type: 'header',
-            x: xPercent,
-            y: yPercent,
-            width: (390 / containerRect.width) * 100, // ✅ en porcentaje
+            x: 0,
+            y: 3,
+            //width: (390 / containerRect.width) * 100, // ✅ en porcentaje
+            width: 100,
             height: (56 / containerRect.height) * 100,
             title: 'UI-SKETCH',
             color: '#2563eb',
@@ -385,10 +386,10 @@ export default function Editor() {
           return {
             id: Date.now().toString(),
             type: 'bottomNavigationBar',
-            x,
-            y,
-            width: 390,
-            height: 56,
+            x: 0,
+            y: 100-heightPercent,
+            width: 100,
+            height: heightPercent,
             backgroundColor: '#ffffff',
             activeColor: '#1976d2',
             inactiveColor: '#757575',
@@ -404,9 +405,10 @@ export default function Editor() {
           return {
             id: Date.now().toString(),
             type: 'datatable',
-            x, y,
-            width: 300,
-            height: 180,
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent,
             headers: ['ID', 'Nombre', 'Descripción'],
             rows: [
               ['1', 'Ejemplo A', 'Fila de prueba'],
