@@ -12,7 +12,7 @@ import Input from './components/Input'
 import Sidebar from './components/Sidebar'
 import Header from './components/header'
 import BottomNavigationBar from './components/BottomNavigationBar'
-import DataTable from './components/Datatable' 
+import DataTable from './components/Datatable'
 
 interface PageFrameProps {
   page: Page // Página que se está renderizando
@@ -95,7 +95,7 @@ export default function PageFrame({
       >
         {page.name}
       </div>
-      
+
     <div ref={pageRef}
       style={{ width: device.width, height: device.height }}
       className={cn(
@@ -172,8 +172,8 @@ export default function PageFrame({
             y: toPx(comp.y, device.height)
           }}
           scale={scale}
-          //disableDragging={(page.id !== currentPageId) && (comp.locked ?? false)}
-          //enableResizing={page.id === currentPageId && (!comp.locked)}
+          // disableDragging={(page.id !== currentPageId) && (comp.locked ?? false)}
+          // enableResizing={page.id === currentPageId && (!comp.locked)}
           disableDragging={comp.locked ?? false}
           enableResizing={!comp.locked}
           onClick={() => {
@@ -226,15 +226,15 @@ export default function PageFrame({
                 y: yPct,
                 width: comp.width,
                 height: comp.height
-              }
-            })
+              }
+            })
           }}
           onResizeStop={(_e, _dir, ref, _delta, pos) => {
             const wPct = toPct(parseInt(ref.style.width), device.width)
             const hPct = toPct(parseInt(ref.style.height), device.height)
             const xPct = toPct(pos.x, device.width)
             const yPct = toPct(pos.y, device.height)
-          
+
             updateComponent(pageIndex, index, {
               ...comp,
               width: wPct,
@@ -242,7 +242,7 @@ export default function PageFrame({
               x: xPct,
               y: yPct
             })
-          
+
             socket?.emit('component_updated', {
               project_id: currentProjectId,
               page_id: page.id,
