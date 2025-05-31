@@ -150,93 +150,93 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
                   return (
                     <FormItem>
                       <FormLabel>Colaboradores (Opcional)</FormLabel>
-                        {/* Popover para elegir múltiples colaboradores */}
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                className={cn(
-                                  'justify-between font-normal w-full',
-                                  selectedIds.length === 0 && 'text-muted-foreground'
-                                )}
-                              >
-                                {selectedIds.length > 0
-                                  ? `Has seleccionado ${selectedIds.length} colaboradores`
-                                  : 'Seleccionar colaboradores'
-                                }
-                                <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            align="start"
-                            sideOffset={4}
-                            // Ajusta el sideOffset si quieres más/menos separación vertical
-                            className="w-[--radix-popover-trigger-width] z-50 border border-border bg-card p-2 rounded-md shadow-md"
-                          >
-                            <Command>
-                              <CommandInput placeholder="Buscar colaborador..." />
-                              <CommandList>
-                                <CommandEmpty>No encontrado</CommandEmpty>
-                                <CommandGroup>
-                                  {user?.colaboradores?.map((col) => {
-                                    const isSelected = selectedIds.includes(Number(col.id))
-                                    return (
-                                      <CommandItem
-                                        key={col.id}
-                                        value={col.name}
-                                        onMouseDown={(e) => {
-                                          e.preventDefault()
-                                          e.stopPropagation()
-                                          toggleId(col.id)
-                                        }}
-                                        className='cursor-pointer hover:bg-accent bg-white dark:bg-dark-bg-primary dark:hover:bg-accent'
-                                      >
-                                        <CheckCheckIcon
-                                          className={cn(
-                                            'mr-2 h-4 w-4',
-                                            isSelected ? 'opacity-100' : 'opacity-0'
-                                          )}
-                                        />
-                                        {col.name}
-                                      </CommandItem>
-                                    )
-                                  })}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                      {/* Popover para elegir múltiples colaboradores */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                'justify-between font-normal w-full',
+                                selectedIds.length === 0 && 'text-muted-foreground'
+                              )}
+                            >
+                              {selectedIds.length > 0
+                                ? `Has seleccionado ${selectedIds.length} colaboradores`
+                                : 'Seleccionar colaboradores'
+                              }
+                              <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          align="start"
+                          sideOffset={4}
+                          // Ajusta el sideOffset si quieres más/menos separación vertical
+                          className="w-[--radix-popover-trigger-width] z-50 border border-border bg-card p-2 rounded-md shadow-md"
+                        >
+                          <Command>
+                            <CommandInput placeholder="Buscar colaborador..." />
+                            <CommandList>
+                              <CommandEmpty>No encontrado</CommandEmpty>
+                              <CommandGroup>
+                                {user?.colaboradores?.map((col) => {
+                                  const isSelected = selectedIds.includes(Number(col.id))
+                                  return (
+                                    <CommandItem
+                                      key={col.id}
+                                      value={col.name}
+                                      onMouseDown={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        toggleId(col.id)
+                                      }}
+                                      className='cursor-pointer hover:bg-accent bg-white dark:bg-dark-bg-primary dark:hover:bg-accent'
+                                    >
+                                      <CheckCheckIcon
+                                        className={cn(
+                                          'mr-2 h-4 w-4',
+                                          isSelected ? 'opacity-100' : 'opacity-0'
+                                        )}
+                                      />
+                                      {col.name}
+                                    </CommandItem>
+                                  )
+                                })}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
 
-                        {/* Etiquetas con la lista de seleccionados */}
-                        {selectedIds.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {selectedIds.map((id) => {
-                              const col = user?.colaboradores?.find((c) => Number(c.id) === Number(id))
-                              if (!col) return null
-                              return (
-                                <Badge
-                                  key={id}
-                                  variant="secondary"
-                                  className="flex items-center gap-1"
+                      {/* Etiquetas con la lista de seleccionados */}
+                      {selectedIds.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {selectedIds.map((id) => {
+                            const col = user?.colaboradores?.find((c) => Number(c.id) === Number(id))
+                            if (!col) return null
+                            return (
+                              <Badge
+                                key={id}
+                                variant="secondary"
+                                className="flex items-center gap-1"
+                              >
+                                {col.name}
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    toggleId(id.toString())
+                                  }}
                                 >
-                                  {col.name}
-                                  <button
-                                    onClick={(e) => {
-                                      e.preventDefault()
-                                      e.stopPropagation()
-                                      toggleId(id.toString())
-                                    }}
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </Badge>
-                              )
-                            })}
-                          </div>
-                        )}
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </Badge>
+                            )
+                          })}
+                        </div>
+                      )}
                       {/* <FormMessage /> */}
                       {fieldState.error?.message && (
                         <p className="text-red-500 text-sm mt-1">
@@ -262,62 +262,26 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
                 )}
               />
               <FormField
-              control={form.control}
-              name="dispositivoId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Resolución</FormLabel>
-                  <FormControl>
-                    <select
-                      {...field}
-                      className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-dark-bg-primary"
-                    >
-                      {DEVICES.map((device) => (
-                        <option key={device.id} value={device.id}>
-                          {device.label}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-              <FormField
                 control={form.control}
-                name="archivoXml"
+                name="dispositivoId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Archivo UML (Opcional)</FormLabel>
+                    <FormLabel>Resolución</FormLabel>
                     <FormControl>
-                      <Input
-                        type="file"
-                        accept=".xml,.xmi"
-                        onChange={(e) => {
-                          field.onChange(e.target.files) // 👈 importantísimo: pasar el archivo al hook
-                        }}
-                      />
+                      <select
+                        {...field}
+                        className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-dark-bg-primary"
+                      >
+                        {DEVICES.map((device) => (
+                          <option key={device.id} value={device.id}>
+                            {device.label}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-              control={form.control}
-              name="imagenBoceto"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Boceto (PNG, JPG …) – opcional</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => { field.onChange(e.target.files) }} // ⬅️ muy importante
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             </div>
 
           </div>

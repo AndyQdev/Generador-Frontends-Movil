@@ -8,7 +8,7 @@ export const connectSocket = (token: string, projectId: string) => {
   socket = io(AppConfig.API_URL_SOCKET, {
     auth: { token, project_id: projectId },
     transports: ['websocket'],
-    autoConnect: false
+    autoConnect: true,
   })
   socket.connect()
   return socket

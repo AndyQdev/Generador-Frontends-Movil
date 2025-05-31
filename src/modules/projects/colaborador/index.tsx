@@ -37,7 +37,7 @@ const ColaboradorPage = (): JSX.Element => {
           <ChevronLeftIcon className="h-4 w-4" />
           <span className="sr-only">Volver</span>
         </Button>
-        <h2 className='px-2 font-semibold text-lg'>Todos los Proyectos</h2>
+        <h2 className='px-2 font-semibold text-lg'>Todos los Colaboradores</h2>
         <DropdownMenu>
           <DropdownMenuTrigger asChild className='ml-auto'>
             <Button variant="outline" size="sm" className="h-8 gap-1"><ListFilter className="h-3.5 w-3.5" /></Button>

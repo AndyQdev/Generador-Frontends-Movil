@@ -190,35 +190,42 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, index) => (
-          <Card key={index} className={msg.role === 'user' ? 'bg-white' : 'bg-muted'}>
+          <Card
+            key={index}
+            className={
+              msg.role === 'user'
+                ? 'bg-white dark:bg-gray-800 dark:text-gray-100'
+                : 'bg-muted dark:bg-gray-700 dark:text-gray-200'
+            }
+          >
             <CardContent className="p-4 whitespace-pre-wrap text-sm font-mono">
               <strong>{msg.role === 'user' ? 'Tú:' : 'UI Sketch:'}</strong>
               <div className="mt-2">
                 {isJSONMessage(msg.content)
                   ? (
-                  <SyntaxHighlighter
-                    language="json"
-                    style={oneDark}
-                    wrapLongLines
-                    customStyle={{
-                      borderRadius: '0.5rem',
-                      fontSize: '0.75rem',
-                      padding: '1rem'
-                    }}
-                  >
-                    {
-                      msg.content
-                        .replace(/^✅ Componente generado:\n```json\n/, '')
-                        .replace(/```$/, '')
-                        .trim()
-                    }
-                  </SyntaxHighlighter>
-                    )
+                    <SyntaxHighlighter
+                      language="json"
+                      style={oneDark}
+                      wrapLongLines
+                      customStyle={{
+                        borderRadius: '0.5rem',
+                        fontSize: '0.75rem',
+                        padding: '1rem'
+                      }}
+                    >
+                      {
+                        msg.content
+                          .replace(/^✅ Componente generado:\n```json\n/, '')
+                          .replace(/```$/, '')
+                          .trim()
+                      }
+                    </SyntaxHighlighter>
+                  )
                   : (
-                  <p className={index === messages.length - 1 && msg.content.length < 10 ? 'typing-cursor' : ''}>
-                    {msg.content}
-                  </p>
-                    )}
+                    <p className={index === messages.length - 1 && msg.content.length < 10 ? 'typing-cursor' : ''}>
+                      {msg.content}
+                    </p>
+                  )}
               </div>
             </CardContent>
           </Card>
@@ -228,8 +235,12 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       <div className="border-t p-4 flex gap-2">
         <Input
           value={input}
-          onChange={(e) => {
-            setInput(e.target.value)
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault(); // evita que haga un salto de línea si es textarea, o que el form haga submit
+              handleSend();
+            }
           }}
           placeholder="Describe tu interfaz Flutter..."
           className="flex-1"

@@ -209,6 +209,8 @@ export default function PageFrame({
           }}
           onDragStop={(_e, d) => {
             isDragging = false
+            const xPct = toPct(d.x, device.width)
+            const yPct = toPct(d.y, device.height)
             updateComponent(pageIndex, index, {
               ...comp,
               x: toPct(d.x, device.width),
@@ -216,37 +218,40 @@ export default function PageFrame({
             })
             const socket = getSocket()
             socket?.emit('component_updated', {
-              project_id: currentProjectId, // El id del proyecto activo
+              project_id: currentProjectId,
               page_id: page.id,
               component: {
                 ...comp,
-                x: toPct(d.x, device.width),
-                y: toPct(d.y, device.height),
+                x: xPct,
+                y: yPct,
                 width: comp.width,
                 height: comp.height
-              }
-            })
+              }
+            })
           }}
-          onResizeStop={(_e, _direction, ref, _delta, position) => {
-            updateComponent(
-              pageIndex,
-              index, {
-                ...comp,
-                width: toPct(parseInt(ref.style.width), device.width),
-                height: toPct(parseInt(ref.style.height), device.height),
-                x: toPct(position.x, device.width),
-                y: toPct(position.y, device.height)
-              })
-            const socket = getSocket()
+          onResizeStop={(_e, _dir, ref, _delta, pos) => {
+            const wPct = toPct(parseInt(ref.style.width), device.width)
+            const hPct = toPct(parseInt(ref.style.height), device.height)
+            const xPct = toPct(pos.x, device.width)
+            const yPct = toPct(pos.y, device.height)
+          
+            updateComponent(pageIndex, index, {
+              ...comp,
+              width: wPct,
+              height: hPct,
+              x: xPct,
+              y: yPct
+            })
+          
             socket?.emit('component_updated', {
-              project_id: currentProjectId, // El id del proyecto activo
+              project_id: currentProjectId,
               page_id: page.id,
               component: {
                 ...comp,
-                x: position.x,
-                y: position.y,
-                width: parseInt(ref.style.width),
-                height: parseInt(ref.style.height)
+                x: xPct,
+                y: yPct,
+                width: wPct,
+                height: hPct
               }
             })
           }}

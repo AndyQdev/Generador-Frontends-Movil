@@ -84,7 +84,7 @@ const UserFormDialog = ({ setOpenModal, mutate }: IUserFormProps) => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto w-full flex flex-col gap-4 lg:gap-6">
           <AlertDialogHeader>
-            <AlertDialogTitle>Crear Proyecto</AlertDialogTitle>
+            <AlertDialogTitle>Crear Colaboradores</AlertDialogTitle>
           </AlertDialogHeader>
           <div className="grid gap-4 lg:gap-6">
             {/* Datos Personales */}

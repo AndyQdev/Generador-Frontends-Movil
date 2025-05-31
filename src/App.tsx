@@ -8,6 +8,7 @@ import Loading from './components/shared/loading'
 import { store } from './redux/store'
 import Routes from './routes'
 import { ComponentProvider } from './context/ComponentContext'
+import { ProjectUsersProvider } from '@/context/ProjectUsersContext'
 import './styles/index.css'
 
 function App() {
@@ -15,19 +16,21 @@ function App() {
     <Provider store={store}>
       <AuthProvider>
         <ComponentProvider>
-          <ThemeProvider>
-            <SWRConfig value={{ revalidateOnFocus: false }}>
-              <Suspense fallback={
-                <div className='grid place-content-center place-items-center min-h-screen text-action'>
-                  <Loading />
-                </div>
-              }>
-                <BrowserRouter>
-                  <Routes />
-                </BrowserRouter>
-              </Suspense>
-            </SWRConfig>
-          </ThemeProvider>
+          <ProjectUsersProvider>
+            <ThemeProvider>
+              <SWRConfig value={{ revalidateOnFocus: false }}>
+                <Suspense fallback={
+                  <div className='grid place-content-center place-items-center min-h-screen text-action'>
+                    <Loading />
+                  </div>
+                }>
+                  <BrowserRouter>
+                    <Routes />
+                  </BrowserRouter>
+                </Suspense>
+              </SWRConfig>
+            </ThemeProvider>
+          </ProjectUsersProvider>
         </ComponentProvider>
       </AuthProvider>
     </Provider>

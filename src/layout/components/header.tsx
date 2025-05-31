@@ -9,14 +9,27 @@ import Navigation from './navigation'
 import { useHeader } from '@/hooks/useHeader'
 import { PrivateRoutes } from '@/models/routes.model'
 import { ModeToggle } from '@/components/mode-toggle'
+import { useProjectUsers } from '@/context/ProjectUsersContext'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+
+const getInitials = (name: string): string => {
+  return name
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase())
+    .join('')
+    .slice(0, 2) // Tomar máximo 2 iniciales
+}
 
 const Header = () => {
   const { breadcrumb } = useHeader()
   // const { signOut } = useAuth()
   const navigate = useNavigate()
+  const { users } = useProjectUsers()
 
   return (
     <header className="flex h-14 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6 bg-background border-secondary dark:bg-dark-background-primary">
+      
       <Sheet>
         <SheetTrigger asChild>
           <Button
@@ -55,6 +68,28 @@ const Header = () => {
             ))}
           </BreadcrumbList>
         </Breadcrumb>
+      </div>
+      <div className="flex items-center gap-2">
+        <TooltipProvider>
+          {users && users.length > 0 ? (
+            users.map((user) => (
+              <Tooltip key={user.id}>
+                <TooltipTrigger asChild>
+                  <Avatar className="h-8 w-8 border-2 border-primary dark:border-white transition-all duration-300 hover:scale-110 hover:rotate-12 hover:shadow-lg hover:shadow-primary/20 dark:hover:shadow-white/20">
+                    <AvatarFallback className="bg-primary/10 text-primary dark:bg-white/10 dark:text-white font-medium transition-colors duration-300 hover:bg-primary/20 dark:hover:bg-white/20">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </TooltipTrigger>
+                <TooltipContent className="transition-all duration-300">
+                  <p className="font-medium">{user.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            ))
+          ) : (
+            <div className="text-sm text-muted-foreground">No hay usuarios conectados</div>
+          )}
+        </TooltipProvider>
       </div>
       <ModeToggle />
       <DropdownMenu>

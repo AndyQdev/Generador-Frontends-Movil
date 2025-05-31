@@ -17,6 +17,7 @@ import throttle from 'lodash.throttle'
 import { BottomNavigationBarComponent, type ButtonComponent, type ChecklistComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent } from '../models/Components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { useProjectUsers } from '@/context/ProjectUsersContext'
 
 export type ComponentItem =
   | ButtonComponent
@@ -49,6 +50,12 @@ interface CreatePage {
   background_color?: string
   components: ComponentItem[]
 }
+
+interface User {
+  id: string
+  name: string
+}
+
 export default function Editor() {
   useHeader([
     { label: 'Espacio de Trabajo', path: PrivateRoutes.AREA }
@@ -82,6 +89,9 @@ export default function Editor() {
   const [loadingMsg, setLoadingMsg] = useState('') // dots animados
   const [genCode, setGenCode] = useState<string | null>(null)
   const dotsRef = useRef<NodeJS.Timeout | null>(null)
+  const { users, setUsers } = useProjectUsers()
+  const [usersInProject, setUsersInProject] = useState<User[]>([])
+
   useEffect(() => {
     if (!activeProject) return
     setPages(activeProject.pages ?? [])
@@ -125,16 +135,55 @@ export default function Editor() {
   }
   useEffect(() => {
     if (activeProject?.id) {
-      const token = localStorage.getItem('token') // o usa tu contexto de auth
+      const token = localStorage.getItem('token')
       if (token) {
         const socket = connectSocket(token, activeProject.id)
         console.log('🔌 Conectando socket...')
+        
+        socket.on('usersInProject', (usersList: User[]) => {
+          console.log('Usuarios en proyecto:', usersList)
+          // Eliminar duplicados basados en el ID del usuario
+          const uniqueUsers = Array.from(
+            new Map(usersList.map(user => [user.id, user])).values()
+          ) as User[]
+          setUsersInProject(uniqueUsers)
+          setUsers(uniqueUsers)
+        })
+
+        socket.on('user_joined', (user: User) => {
+          console.log('👋 Usuario conectado:', user)
+          setUsersInProject(prev => {
+            const exists = prev.some(u => u.id === user.id)
+            if (!exists) {
+              return [...prev, user]
+            }
+            return prev
+          })
+          setUsers(prev => {
+            const exists = prev.some(u => u.id === user.id)
+            if (!exists) {
+              return [...prev, user]
+            }
+            return prev
+          })
+        })
+
+        socket.on('user_left', (userId: string) => {
+          console.log('👋 Usuario desconectado:', userId)
+          setUsersInProject(prev => prev.filter(u => u.id !== userId))
+          setUsers(prev => prev.filter(u => u.id !== userId))
+        })
+        
         socket.on('initial_state', (snapshot) => {
           console.log('📦 Estado inicial recibido:', snapshot)
           console.log('✅ Socket conectado correctamente:', socket.id)
         })
+
         socket.on('disconnect', (reason) => {
           console.log('⚠️ Socket desconectado:', reason)
+          // Limpiar la lista de usuarios al desconectarse
+          setUsersInProject([])
+          setUsers([])
         })
 
         socket.on('connect_error', (error) => {
@@ -231,9 +280,18 @@ export default function Editor() {
             return next
           })
         })
+        return () => {
+          socket.off('usersInProject')
+          socket.off('user_joined')
+          socket.off('user_left')
+          socket.off('initial_state')
+          socket.off('disconnect')
+          socket.off('connect_error')
+          socket.disconnect()
+        }
       }
     }
-  }, [activeProject?.id])
+  }, [activeProject?.id, setUsers])
   const onSubmit = () => {
     toast.promise(updateProject(
       {
