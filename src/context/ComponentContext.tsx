@@ -2,19 +2,6 @@ import { type ComponentItem } from '@/modules/area_job/pages/page'
 import { type Page } from '@/modules/projects/models/page.model'
 import { createContext, useContext, useState, type ReactNode } from 'react'
 
-// export interface ComponentItem {
-//   id: string
-//   type: string
-//   label: string
-//   x: number
-//   y: number
-//   width: number
-//   height: number
-//   backgroundColor?: string
-//   borderRadius?: string
-//   placeholder?: string
-// }
-
 interface ComponentContextType {
   selectedComponent: ComponentItem | null
   setSelectedComponent: (component: ComponentItem | null) => void

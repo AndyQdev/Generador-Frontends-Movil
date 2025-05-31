@@ -22,6 +22,13 @@ export interface ComponentStyle {
   }
   // extensible: podrías agregar más campos como margin, shadow, etc.
 }
+export interface InputComponent extends BaseComponent {
+  type: 'input'
+  placeholder?: string
+  value?: string
+  style?: ComponentStyle
+}
+
 export interface Section {
   icon: string
   label: string
@@ -49,12 +56,6 @@ export interface ButtonComponent extends BaseComponent {
   label: string
   style?: ComponentStyle
   route?: string // para navegación opcional
-}
-export interface InputComponent extends BaseComponent {
-  type: 'input'
-  placeholder?: string
-  value?: string
-  style?: ComponentStyle
 }
 
 // Componentes que faltan crear ---------------------------------------------------------------

@@ -22,6 +22,7 @@ import { toast } from 'sonner'
 import { type KeyedMutator } from 'swr'
 import { PrivateRoutes } from '@/models/routes.model'
 import { useNavigate } from 'react-router-dom'
+import { DEVICES } from '@/modules/area_job/utils/devices'
 // import { useCreateResource } from '@/hooks/useApiResource'
 // import { CreateUser } from '../../models/user.model'
 
@@ -37,7 +38,8 @@ const formSchema = z.object({
     .optional()
     .default([]),
   archivoXml: z.any().optional(),
-  imagenBoceto: z.any().optional()
+  imagenBoceto: z.any().optional(),
+  dispositivoId: z.string().min(1)
 })
 
 interface IUserFormProps {
@@ -59,7 +61,8 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
       descripcion: '',
       colaboradorId: [],
       archivoXml: undefined,
-      imagenBoceto: undefined //  🆕
+      imagenBoceto: undefined,
+      dispositivoId: 'iphone-14'
     }
   })
   const navigate = useNavigate()
@@ -70,6 +73,11 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
       formData.append('descripcion', data.descripcion)
       if (data.colaboradorId && data.colaboradorId.length > 0) {
         formData.append('colaboradorId', data.colaboradorId.join(',')) // enviamos como string separado
+      }
+      const selectedDevice = DEVICES.find(d => d.id === data.dispositivoId)
+      if (selectedDevice) {
+        formData.append('resolution_w', String(selectedDevice.width))
+        formData.append('resolution_h', String(selectedDevice.height))
       }
       if (data.archivoXml?.[0]) { // Porque Input file devuelve array de files
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -253,6 +261,27 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
                   </FormItem>
                 )}
               />
+              <FormField
+              control={form.control}
+              name="dispositivoId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Resolución</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-dark-bg-primary"
+                    >
+                      {DEVICES.map((device) => (
+                        <option key={device.id} value={device.id}>
+                          {device.label}
+                        </option>
+                      ))}
+                    </select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
               <FormField
                 control={form.control}
                 name="archivoXml"
