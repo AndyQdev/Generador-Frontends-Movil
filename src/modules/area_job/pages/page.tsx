@@ -15,7 +15,7 @@ import Canvas from './Canvas'
 import { useParams } from 'react-router-dom'
 import { connectSocket, getSocket } from '@/lib/socket'
 import throttle from 'lodash.throttle'
-import { type ButtonComponent, type ChecklistComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent } from '../models/Components'
+import { BottomNavigationBarComponent, type ButtonComponent, type ChecklistComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent } from '../models/Components'
 
 export type ComponentItem =
   | ButtonComponent
@@ -31,6 +31,8 @@ export type ComponentItem =
   | ChecklistComponent
   | RadioButtonComponent
   | HeaderComponent
+  | BottomNavigationBarComponent
+
 
 interface Page {
   id: string
@@ -250,7 +252,7 @@ export default function Editor() {
     })
   }
   const throttledEmit = useMemo(() => {
-    if (!activeProject?.id) return () => {} // no hace nada aún
+    if (!activeProject?.id) return () => { } // no hace nada aún
     return throttle((component: ComponentItem) => {
       const socket = getSocket()
       if (!socket) return
@@ -365,6 +367,41 @@ export default function Editor() {
               ]
             }
           }
+        case 'bottomNavigationBar':
+          return {
+            id: Date.now().toString(),
+            type: 'bottomNavigationBar',
+            x,
+            y,
+            width: 390,
+            height: 56,
+            backgroundColor: '#ffffff',
+            activeColor: '#1976d2',
+            inactiveColor: '#757575',
+            borderRadious: 8,
+            locked:true,
+            items: [
+              { icon: 'home', label: 'Inicio', route: '', isActive: true },
+              { icon: 'search', label: 'Buscar', route: '', isActive: false },
+              { icon: 'user', label: 'Perfil', route: '', isActive: false }
+            ]
+          }
+        case 'datatable':
+          return {
+            id: Date.now().toString(),
+            type: 'datatable',
+            x, y,
+            width: 300,
+            height: 180,
+            headers: ['ID', 'Nombre', 'Descripción'],
+            rows: [
+              ['1', 'Ejemplo A', 'Fila de prueba'],
+              ['2', 'Ejemplo B', 'Otra fila'],
+              ['3', 'Ejemplo C', 'Más datos']
+            ],
+            backgroundColor: '#ffffff'
+          }
+
         default:
           throw new Error(`Tipo de componente desconocido: ${type}`)
       }
@@ -504,79 +541,79 @@ export default function Editor() {
   return (
     <div className="flex flex-col h-screen w-full">
 
-    {/* ------------ Diálogo Crear página ------------- */}
-    <Dialog open={openDlg} onOpenChange={setOpenDlg}>
-      <DialogContent>
-        <AlertDialogHeader>
-          <DialogTitle>Nueva página</DialogTitle>
-        </AlertDialogHeader>
+      {/* ------------ Diálogo Crear página ------------- */}
+      <Dialog open={openDlg} onOpenChange={setOpenDlg}>
+        <DialogContent>
+          <AlertDialogHeader>
+            <DialogTitle>Nueva página</DialogTitle>
+          </AlertDialogHeader>
 
-        <div className="space-y-4">
-          {/* Nombre */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Nombre</label>
-            <Input
-              value={newName}
-              onChange={e => { setNewName(e.target.value) }}
-              placeholder="Página de inicio…"
-            />
-          </div>
-
-          {/* Selector de color */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Color de fondo</label>
-
-            {/* preview + código */}
-            <div className="flex items-center gap-3">
-              <span
-                className="block w-8 h-8 rounded border"
-                style={{ backgroundColor: newBg }}
+          <div className="space-y-4">
+            {/* Nombre */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Nombre</label>
+              <Input
+                value={newName}
+                onChange={e => { setNewName(e.target.value) }}
+                placeholder="Página de inicio…"
               />
-              <code className="text-sm">{newBg}</code>
             </div>
 
-            {/* Color picker */}
-            <HexColorPicker color={newBg} onChange={setNewBg} className="rounded-md shadow" />
+            {/* Selector de color */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Color de fondo</label>
+
+              {/* preview + código */}
+              <div className="flex items-center gap-3">
+                <span
+                  className="block w-8 h-8 rounded border"
+                  style={{ backgroundColor: newBg }}
+                />
+                <code className="text-sm">{newBg}</code>
+              </div>
+
+              {/* Color picker */}
+              <HexColorPicker color={newBg} onChange={setNewBg} className="rounded-md shadow" />
+            </div>
+            {/* Selector de botón */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Asociar a botón</label>
+              <Select
+                value={selectedButtonId ?? ''}
+                onValueChange={(value) => { setSelectedButtonId(value) }}
+              >
+                <SelectTrigger className="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                  <SelectValue placeholder="Seleccionar botón..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* <SelectItem value="">Seleccionar botón...</SelectItem> */}
+                  {allButtons.map((button) => (
+                    <SelectItem key={button.id} value={button.id}>
+                      {button.label} (Página: {button.pageName})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => { setOpenDlg(false) }}
+                className="px-3 py-1.5 text-sm rounded border hover:bg-gray-100"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={creating}
+                onClick={handleCreatePage}
+                className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Guardar
+              </button>
+            </div>
           </div>
-          {/* Selector de botón */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Asociar a botón</label>
-            <Select
-              value={selectedButtonId ?? ''}
-              onValueChange={(value) => { setSelectedButtonId(value) }}
-            >
-              <SelectTrigger className="w-full border border-gray-300 rounded px-2 py-1 text-sm">
-                <SelectValue placeholder="Seleccionar botón..." />
-              </SelectTrigger>
-              <SelectContent>
-                {/* <SelectItem value="">Seleccionar botón...</SelectItem> */}
-                {allButtons.map((button) => (
-                  <SelectItem key={button.id} value={button.id}>
-                    {button.label} (Página: {button.pageName})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              onClick={() => { setOpenDlg(false) }}
-              className="px-3 py-1.5 text-sm rounded border hover:bg-gray-100"
-            >
-              Cancelar
-            </button>
-            <button
-              disabled={creating}
-              onClick={handleCreatePage}
-              className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-            >
-              Guardar
-            </button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
       {/* Lienzo */}
       <Canvas
         pages={pages}

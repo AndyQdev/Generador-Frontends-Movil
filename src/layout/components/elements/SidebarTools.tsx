@@ -16,12 +16,24 @@ export default function HeaderTools({
   openTitleIconPicker,
   openSectionIconPicker
 }: HeaderToolsProps) {
+  if (!component.sidebar) return <div>Sidebar no disponible</div>
   const sidebar = component.sidebar
+
+  // const updateSidebar = (updates: Partial<typeof sidebar>) => {
+  //   setComponent({
+  //     ...component,
+  //     sidebar: { ...component.sidebar, ...updates }
+  //   })
+  // }
 
   const updateSidebar = (updates: Partial<typeof sidebar>) => {
     setComponent({
       ...component,
-      sidebar: { ...component.sidebar, ...updates }
+      sidebar: {
+        ...component.sidebar!,
+        ...updates,
+        type: 'sidebar' // ← forzamos a que siempre tenga este valor fijo
+      }
     })
   }
 

@@ -5,22 +5,26 @@ import ChatSidebar from './components/chat'
 import Aside from './components/aside'
 import { Toaster } from '@/components/ui/sonner'
 import RightSidebar from './components/right-sidebar'
+import { useState } from 'react'
 
 const Layout = () => {
   const location = useLocation()
   const isCanvasRoute = location.pathname.includes('/area-trabajo')
+  const [isChatOpen, setIsChatOpen] = useState(true)
 
   return (
     <div className="flex h-screen w-full bg-light-bg-primary dark:bg-dark-background-primary relative">
       {/* --- Aside con su propio contenedor --- */}
       <div className="relative z-40">
-        <Aside />
+        <Aside isChatOpen={isChatOpen} onToggleChat={() => setIsChatOpen(!isChatOpen)} />
       </div>
 
-      {/* --- ChatSidebar en su propio contenedor --- */}
-      <div className="relative z-30">
-        <ChatSidebar />
-      </div>
+      {/* --- ChatSidebar solo visible en área de trabajo --- */}
+      {isCanvasRoute && isChatOpen && (
+        <div className="relative z-30">
+          <ChatSidebar onClose={() => setIsChatOpen(false)} />
+        </div>
+      )}
 
       {/* --- Contenido principal (Header + Página) --- */}
       <div className="flex-1 flex flex-col overflow-hidden">

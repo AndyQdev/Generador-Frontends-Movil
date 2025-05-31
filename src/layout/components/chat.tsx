@@ -2,10 +2,14 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { MessageSquare, GripVertical } from 'lucide-react'
+import { MessageSquare, X } from 'lucide-react'
 import { CardTitle } from '@/components/ui/card'
 
-const ChatSidebar = () => {
+interface ChatSidebarProps {
+  onClose: () => void
+}
+
+const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
   const [messages, setMessages] = useState([
     {
       role: 'system',
@@ -67,11 +71,14 @@ const ChatSidebar = () => {
       style={{ width: `${width}px` }}
       className="min-w-[320px] h-full border-r bg-background dark:bg-dark-background-primary flex flex-col relative z-10"
     >
-      <div className="h-14 border-b lg:h-[60px] bg-dark-primary-foreground flex items-center justify-center text-light-text-primary dark:text-dark-text-primary font-medium text-lg">
+      <div className="h-14 border-b lg:h-[60px] bg-dark-primary-foreground flex items-center justify-between px-4 text-light-text-primary dark:text-dark-text-primary font-medium text-lg">
         <div className="flex items-center gap-3">
           <MessageSquare className="w-7 h-7" />
           <CardTitle>Chat</CardTitle>
         </div>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="w-5 h-5" />
+        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

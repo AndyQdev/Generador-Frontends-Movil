@@ -4,6 +4,7 @@ export interface BaseComponent {
   y: number
   width: number
   height: number
+  locked?: boolean
 }
 export interface ComponentStyle {
   backgroundColor?: string
@@ -155,3 +156,21 @@ export interface RadioButtonComponent extends BaseComponent {
   selected?: string
   name?: string // grupo común
 }
+
+// ────────────── Navegación Inferior ──────────────
+export interface BottomNavItem {
+  icon: string
+  label: string
+  route: string
+  isActive?: boolean
+}
+
+export interface BottomNavigationBarComponent extends BaseComponent {
+  type: 'bottomNavigationBar'
+  backgroundColor?: string
+  activeColor?: string
+  inactiveColor?: string
+  borderRadius?: number
+  items: BottomNavItem[]
+}
+
