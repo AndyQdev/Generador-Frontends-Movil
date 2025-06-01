@@ -14,9 +14,9 @@ export default function BottomNavigationBar({ comp }: { comp: BottomNavigationBa
     <nav
       className={cn(
         'w-full h-full flex items-center justify-around border-t',
-        'shadow-[0_-1px_4px_rgba(0,0,0,0.1)] backdrop-blur-sm'   // estilo similar al sidebar
+        'shadow-[0_-1px_4px_rgba(0,0,0,0.1)] backdrop-blur-sm' // estilo similar al sidebar
       )}
-      style={{ backgroundColor, borderRadius }}                 // ◀️
+      style={{ backgroundColor, borderRadius }} // ◀️
     >
       {items.map((item, idx) => (
         <button

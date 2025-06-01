@@ -12,6 +12,15 @@ import Input from './components/Input'
 import Header from './components/header'
 import BottomNavigationBar from './components/BottomNavigationBar'
 import DataTable from './components/Datatable'
+import Select from './components/Select'
+import CheckList from './components/CheckList'
+import RadioButton from './components/RadioButton'
+import Card from './components/Card'
+import Label from './components/Label'
+import TextArea from './components/TextArea'
+import Imagen from './components/Imagen'
+import Calendar from './components/Calendar'
+import Search from './components/Search'
 
 interface PageFrameProps {
   page: Page // Página que se está renderizando
@@ -48,8 +57,6 @@ export default function PageFrame({
   device
 }: PageFrameProps) {
   let isDragging = false
-  const [openDialogs, setOpenDialogs] = useState<Record<string, boolean>>({})
-  const [formValues, setFormValues] = useState<Record<string, string>>({})
   const [confirmDeleteRowIndex, setConfirmDeleteRowIndex] = useState<number | null>(null)
   const { setSelectedPage } = useComponentContext()
   const socket = getSocket()
@@ -283,6 +290,24 @@ export default function PageFrame({
                   return <BottomNavigationBar comp={comp} />
                 case 'datatable':
                   return <DataTable comp={comp}/>
+                case 'select':
+                  return <Select comp={comp} />
+                case 'checklist':
+                  return <CheckList comp={comp} />
+                case 'radiobutton':
+                  return <RadioButton comp={comp} />
+                case 'card':
+                  return <Card comp={comp} />
+                case 'label':
+                  return <Label comp={comp} />
+                case 'textArea':
+                  return <TextArea comp={comp} />
+                case 'imagen':
+                  return <Imagen comp={comp} />
+                case 'calendar':
+                  return <Calendar comp={comp} />
+                case 'search':
+                  return <Search comp={comp} />
                 default:
                   return <div>Componente no soportado</div>
               }
@@ -326,118 +351,6 @@ export default function PageFrame({
           </div>
         </div>
       )}
-      {Object.entries(openDialogs).map(([compId, isOpen]) => {
-        const comp = page.components.find(c => c.id === compId && c.type === 'listar')
-        if (!isOpen || !comp || comp.type !== 'listar' || page.id !== currentPageId) return null
-        // ⬆️ Aquí la diferencia principal: page.id === currentPageId
-        // solo renderiza el Dialog si pertenece a la página activa
-
-        return (
-         <div
-           key={compId}
-           className="absolute inset-0 z-[9999] flex items-center justify-center bg-black/40"
-         >
-          <div className="bg-white  rounded-lg shadow-lg w-[500px] max-w-full p-6 space-y-4">
-            <h2 className="text-xl text-black font-semibold mb-2">{comp.dialog.title}</h2>
-
-            {comp.dialog.fields.map((field, idx) => (
-              <div key={idx} className="flex flex-col space-y-1">
-                <label className="text-sm font-medium text-gray-700">{field.label}</label>
-
-                {field.type.type === 'input' && (
-                  <input
-                    className="border border-gray-300 rounded px-3 py-1 text-sm bg-white text-black"
-                    placeholder={field.type.placeholder}
-                    value={formValues[field.label] ?? ''}
-                    onChange={(e) => {
-                      const updatedFields = [...comp.dialog.fields]
-                      setFormValues(prev => ({ // <- actualizamos el estado local
-                        ...prev,
-                        [field.label]: e.target.value
-                      }))
-                      updatedFields[idx].type.value = e.target.value
-                      updateComponent(pageIndex, page.components.findIndex(c => c.id === comp.id), {
-                        ...comp,
-                        dialog: {
-                          ...comp.dialog,
-                          fields: updatedFields
-                        }
-                      })
-                    }}
-                  />
-                )}
-
-                {field.type.type === 'select' && (
-                  <select
-                    className="border border-gray-300 rounded px-3 py-1 text-sm"
-                    value={formValues[field.label] ?? ''}
-                    onChange={(e) => {
-                      setFormValues(prev => ({
-                        ...prev,
-                        [field.label]: e.target.value
-                      }))
-                      const updatedFields = [...comp.dialog.fields]
-                      updatedFields[idx].type.value = e.target.value
-                      updateComponent(pageIndex, page.components.findIndex(c => c.id === comp.id), {
-                        ...comp,
-                        dialog: {
-                          ...comp.dialog,
-                          fields: updatedFields
-                        }
-                      })
-                    }}
-                  >
-                    {field.type.options.map((option, optionIdx) => (
-                      <option key={optionIdx} value={option}>{option}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            ))}
-
-            <div className="flex justify-end gap-2 pt-4">
-              <button
-                onClick={() => {
-                  setOpenDialogs(prev => ({ ...prev, [compId]: false }))
-                }}
-                className="px-4 py-2 rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  const newRow = comp.dialog.fields.map((field) => formValues[field.label] ?? '')
-
-                  const updatedRows = [...comp.dataTable.rows, newRow]
-
-                  updateComponent(
-                    pageIndex,
-                    page.components.findIndex(c => c.id === compId),
-                    {
-                      ...comp,
-                      dataTable: {
-                        ...comp.dataTable,
-                        rows: updatedRows
-                      },
-                      dialog: {
-                        ...comp.dialog,
-                        fields: comp.dialog.fields.map(field => ({ ...field, value: '' }))
-                      }
-                    }
-                  )
-
-                  setOpenDialogs(prev => ({ ...prev, [compId]: false }))
-                  setFormValues({}) // ✅ Limpiamos los valores temporales
-                }}
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Guardar
-              </button>
-            </div>
-          </div>
-        </div>
-        )
-      })}
 
     </div>
     </div>

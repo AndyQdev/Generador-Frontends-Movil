@@ -17,6 +17,15 @@ import InputTools from '../elements/InputTools'
 import HeaderTools from '../elements/SidebarTools'
 import BottomNavigationTools from '../elements/BottomNavigationTools'
 import DataTableTools from '../elements/DataTableTools'
+import SelectTools from '../elements/SelectTools'
+import CheckListTools from '../elements/CheckListTools'
+import RadioButtonTools from '../elements/RadioButtonTools'
+import CardTools from '../elements/CardTools'
+import LabelTools from '../elements/LabelTools'
+import TextAreaTools from '../elements/TextAreaTools'
+import ImagenTools from '../elements/ImagenTools'
+import SearchTools from '../elements/SearchTools'
+import CalendarTools from '../elements/CalendarTools'
 
 export default function ToolsSection() {
   const [isHerramientaOpen, setIsHerramientaOpen] = useState(true)
@@ -105,7 +114,7 @@ export default function ToolsSection() {
                 setComponent={(updated) => { setSelectedComponent(updated) }}
                 project={project}
               />
-              <div className='h-72'>
+              <div className='h-96'>
               </div>
             </div>
           )}
@@ -117,7 +126,7 @@ export default function ToolsSection() {
                 component={selectedComponent}
                 setComponent={(updated) => { setSelectedComponent(updated) }}
               />
-              <div className='h-72'>
+              <div className='h-96'>
               </div>
             </div>
           )}
@@ -131,7 +140,7 @@ export default function ToolsSection() {
                 openTitleIconPicker={() => {}}
                 openSectionIconPicker={() => {}}
               />
-              <div className='h-72'>
+              <div className='h-96'>
               </div>
             </div>
           )}
@@ -143,7 +152,7 @@ export default function ToolsSection() {
                 setComponent={setSelectedComponent}
                 project={project}
               />
-              <div className='h-72'>
+              <div className='h-96'>
               </div>
             </div>
           )}
@@ -154,12 +163,92 @@ export default function ToolsSection() {
                 component={selectedComponent}
                 setComponent={setSelectedComponent}
               />
-              <div className='h-72'>
+              <div className='h-96'>
               </div>
+            </div>
+          )}
+
+          {selectedComponent.type === 'select' && (
+            <div className="space-y-3">
+              <SelectTools
+                component={selectedComponent}
+                setComponent={setSelectedComponent}
+              />
+              <div className='h-96'></div>
+            </div>
+          )}
+          {selectedComponent.type === 'checklist' && (
+            <div className="space-y-3">
+              <CheckListTools
+                component={selectedComponent}
+                setComponent={setSelectedComponent}
+              />
+              <div className='h-96'></div>
+            </div>
+          )}
+
+          {selectedComponent.type === 'radiobutton' && (
+            <div className="space-y-3">
+              <RadioButtonTools
+                component={selectedComponent}
+                setComponent={setSelectedComponent}
+              />
+              <div className='h-96'></div>
+            </div>
+          )}
+          {selectedComponent.type === 'card' && (
+            <div className="space-y-3">
+              <CardTools component={selectedComponent} setComponent={setSelectedComponent} />
+              <div className="h-96"></div>
+            </div>
+          )}
+
+          {selectedComponent.type === 'label' && (
+            <div className="space-y-3">
+              <LabelTools component={selectedComponent} setComponent={setSelectedComponent} />
+              <div className="h-96"></div>
+            </div>
+          )}
+          {selectedComponent.type === 'textArea' && (
+            <div className="space-y-3">
+              <TextAreaTools
+                component={selectedComponent}
+                setComponent={(updated) => { setSelectedComponent(updated) }}
+              />
+              <div className="h-96"></div>
+            </div>
+          )}
+
+          {selectedComponent.type === 'imagen' && (
+            <div className="space-y-3">
+              <ImagenTools
+                component={selectedComponent}
+                setComponent={(updated) => { setSelectedComponent(updated) }}
+              />
+              <div className="h-96"></div>
+            </div>
+          )}
+          {selectedComponent.type === 'search' && (
+            <div className="space-y-3">
+              <SearchTools
+                component={selectedComponent}
+                setComponent={(updated) => { setSelectedComponent(updated) }}
+              />
+              <div className="h-96"></div>
+            </div>
+          )}
+
+          {selectedComponent.type === 'calendar' && (
+            <div className="space-y-3">
+              <CalendarTools
+                component={selectedComponent}
+                setComponent={(updated) => { setSelectedComponent(updated) }}
+              />
+              <div className="h-96"></div>
             </div>
           )}
         </div>
       </CollapsibleContent>
     </Collapsible>
   )
-} 
+}

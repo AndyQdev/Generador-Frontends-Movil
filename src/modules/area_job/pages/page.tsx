@@ -3,7 +3,7 @@ import { useComponentContext } from '@/context/ComponentContext'
 import { useHeader } from '@/hooks'
 import { PrivateRoutes } from '@/models/routes.model'
 import { API_BASEURL, ENDPOINTS } from '@/utils'
-import { useCreateResource, useGetResource, useUpdateResource } from '@/hooks/useApiResource'
+import { useGetResource, useUpdateResource } from '@/hooks/useApiResource'
 import { type UpdateProject, type Project } from '@/modules/projects/models/project.model'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -14,7 +14,7 @@ import Canvas from './Canvas'
 import { useParams } from 'react-router-dom'
 import { connectSocket, getSocket } from '@/lib/socket'
 import throttle from 'lodash.throttle'
-import { BottomNavigationBarComponent, type ButtonComponent, type ChecklistComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent } from '../models/Components'
+import { type CardComponent, type BottomNavigationBarComponent, type ButtonComponent, type CheckListComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent, type TextAreaComponent, type ImagenComponent, type CalendarComponent } from '../models/Components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useProjectUsers } from '@/context/ProjectUsersContext'
@@ -30,11 +30,14 @@ export type ComponentItem =
   | ListarComponent
   | LoginComponent
   | SelectComponent
-  | ChecklistComponent
+  | CheckListComponent
   | RadioButtonComponent
   | HeaderComponent
   | BottomNavigationBarComponent
-
+  | CardComponent
+  | TextAreaComponent
+  | ImagenComponent
+  | CalendarComponent
 
 interface Page {
   id: string
@@ -43,11 +46,6 @@ interface Page {
   background_color?: string
   grid_enabled?: boolean
   device_mode?: string
-  components: ComponentItem[]
-}
-interface CreatePage {
-  name: string
-  background_color?: string
   components: ComponentItem[]
 }
 
@@ -68,9 +66,6 @@ export default function Editor() {
     endpoint: areaId && areaId !== ':areaId' ? ENDPOINTS.PROJECTS : ENDPOINTS.ULTIMO_PROJECT, // si no es valido, no busca nada
     id: areaId && areaId !== ':areaId' ? areaId : ''
   })
-  const { createResource: createPage } = useCreateResource<CreatePage>({
-    endpoint: ENDPOINTS.PROJECTS + '/' + activeProject?.id + '/pages'
-  })
   const [pages, setPages] = useState<Page[]>([
     { id: '1', name: 'Página 1', components: [] }
   ])
@@ -79,18 +74,17 @@ export default function Editor() {
   const prevPagesLen = useRef(0)
   const [openDlg, setOpenDlg] = useState(false)
   const [newName, setNewName] = useState('')
-  const [newBg, setNewBg] = useState('#ffffff')
   const [creating, setCreating] = useState(false)
   const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  const [isGenerating, setIsGenerating] = useState(false) // IA en curso
-  const [loadingMsg, setLoadingMsg] = useState('') // dots animados
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [loadingMsg, setLoadingMsg] = useState('')
   const [genCode, setGenCode] = useState<string | null>(null)
   const dotsRef = useRef<NodeJS.Timeout | null>(null)
-  const { users, setUsers } = useProjectUsers()
-  const [usersInProject, setUsersInProject] = useState<User[]>([])
+  const { setUsers } = useProjectUsers()
+  const [, setUsersInProject] = useState<User[]>([])
 
   useEffect(() => {
     if (!activeProject) return
@@ -139,13 +133,13 @@ export default function Editor() {
       if (token) {
         const socket = connectSocket(token, activeProject.id)
         console.log('🔌 Conectando socket...')
-        
+
         socket.on('usersInProject', (usersList: User[]) => {
           console.log('Usuarios en proyecto:', usersList)
           // Eliminar duplicados basados en el ID del usuario
           const uniqueUsers = Array.from(
             new Map(usersList.map(user => [user.id, user])).values()
-          ) as User[]
+          )
           setUsersInProject(uniqueUsers)
           setUsers(uniqueUsers)
         })
@@ -173,7 +167,7 @@ export default function Editor() {
           setUsersInProject(prev => prev.filter(u => u.id !== userId))
           setUsers(prev => prev.filter(u => u.id !== userId))
         })
-        
+
         socket.on('initial_state', (snapshot) => {
           console.log('📦 Estado inicial recibido:', snapshot)
           console.log('✅ Socket conectado correctamente:', socket.id)
@@ -344,15 +338,12 @@ export default function Editor() {
 
     throttledEmit(selectedComponent)
   }, [selectedComponent])
-  console.log('🔵 Páginas actuales:', pages)
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string, scale: number) => {
     const socket = getSocket()
 
     e.preventDefault()
     const type = e.dataTransfer.getData('component/type')
     const containerRect = e.currentTarget.getBoundingClientRect()
-    const x = (e.clientX - containerRect.left) / scale
-    const y = (e.clientY - containerRect.top) / scale
     const xPercent = ((e.clientX - containerRect.left) / containerRect.width) * 100
     const yPercent = ((e.clientY - containerRect.top) / containerRect.height) * 100
     const widthPercent = (200 / containerRect.width) * 100
@@ -417,7 +408,6 @@ export default function Editor() {
             type: 'header',
             x: 0,
             y: 3,
-            //width: (390 / containerRect.width) * 100, // ✅ en porcentaje
             width: 100,
             height: (56 / containerRect.height) * 100,
             title: 'UI-SKETCH',
@@ -445,19 +435,45 @@ export default function Editor() {
             id: Date.now().toString(),
             type: 'bottomNavigationBar',
             x: 0,
-            y: 100-heightPercent,
+            y: 100 - heightPercent,
             width: 100,
             height: heightPercent,
             backgroundColor: '#ffffff',
             activeColor: '#1976d2',
             inactiveColor: '#757575',
             borderRadious: 8,
-            locked:true,
+            locked: true,
             items: [
               { icon: 'home', label: 'Inicio', route: '', isActive: true },
               { icon: 'search', label: 'Buscar', route: '', isActive: false },
               { icon: 'user', label: 'Perfil', route: '', isActive: false }
             ]
+          }
+        case 'select':
+          return {
+            id: Date.now().toString(),
+            type: 'select',
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent,
+            label: 'Seleccione una opción',
+            options: ['Opción 1', 'Opción 2', 'Opción 3'],
+            selectedOption: '',
+            style: {
+              backgroundColor: '#ffffff',
+              borderRadius: 6,
+              padding: {
+                top: 6,
+                bottom: 6,
+                left: 10,
+                right: 10
+              },
+              textStyle: {
+                fontSize: 14,
+                color: '#111827'
+              }
+            }
           }
         case 'datatable':
           return {
@@ -475,7 +491,170 @@ export default function Editor() {
             ],
             backgroundColor: '#ffffff'
           }
+        case 'checklist':
+          return {
+            id: Date.now().toString(),
+            type: 'checklist',
+            label: 'Selecciona opciones',
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent,
+            options: ['Opción 1', 'Opción 2', 'Opción 3'],
+            selectedOptions: [],
+            style: {
+              backgroundColor: '#ffffff',
+              textStyle: {
+                fontSize: 14,
+                color: '#111827'
+              }
+            }
+          }
 
+        case 'radiobutton':
+          return {
+            id: Date.now().toString(),
+            type: 'radiobutton',
+            label: 'Selecciona una opción',
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent,
+            options: ['Opción A', 'Opción B', 'Opción C'],
+            selectedOption: '',
+            style: {
+              backgroundColor: '#ffffff',
+              textStyle: {
+                fontSize: 14,
+                color: '#111827'
+              }
+            }
+          }
+        case 'card':
+          return {
+            id: Date.now().toString(),
+            type: 'card',
+            x: xPercent,
+            y: yPercent,
+            width: (300 / containerRect.width) * 100,
+            height: (300 / containerRect.height) * 100,
+            title: 'Título de la tarjeta',
+            content: 'Este es el contenido de la tarjeta.',
+            style: {
+              backgroundColor: '#ffffff',
+              borderRadius: 8,
+              padding: {
+                top: 12,
+                bottom: 12,
+                left: 16,
+                right: 16
+              },
+              textStyle: {
+                fontSize: 14,
+                color: '#111827'
+              }
+            }
+          }
+
+        case 'label':
+          return {
+            id: Date.now().toString(),
+            type: 'label',
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent,
+            text: 'Etiqueta de ejemplo',
+            style: {
+              textStyle: {
+                fontSize: 16,
+                fontWeight: 'medium',
+                color: '#111827'
+              }
+            }
+          }
+        case 'textArea':
+          return {
+            id: Date.now().toString(),
+            type: 'textArea',
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent * 2, // un poco más alto que input
+            placeholder: 'Escriba un mensaje...',
+            value: '',
+            style: {
+              backgroundColor: '#ffffff',
+              borderRadius: 6,
+              padding: {
+                top: 8,
+                bottom: 8,
+                left: 10,
+                right: 10
+              },
+              textStyle: {
+                fontSize: 14,
+                color: '#111827'
+              }
+            }
+          }
+
+        case 'imagen':
+          return {
+            id: Date.now().toString(),
+            type: 'imagen',
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent - 10,
+            height: heightPercent * 3,
+            src: 'https://wallpapers.com/images/featured-full/imagenes-de-perfil-geniales-4co57dtwk64fb7lv.jpg', // imagen por defecto
+            style: {
+              borderRadius: 50
+            }
+          }
+        case 'search':
+          return {
+            id: Date.now().toString(),
+            type: 'search',
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent,
+            placeholder: 'Buscar...',
+            value: '',
+            style: {
+              backgroundColor: '#ffffff',
+              borderRadius: 6,
+              padding: {
+                top: 6,
+                bottom: 6,
+                left: 10,
+                right: 10
+              },
+              textStyle: {
+                fontSize: 14,
+                color: '#111827'
+              }
+            }
+          }
+        case 'calendar':
+          return {
+            id: Date.now().toString(),
+            type: 'calendar',
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent,
+            height: heightPercent,
+            selectedDate: new Date().toISOString().split('T')[0], // hoy
+            style: {
+              backgroundColor: '#ffffff',
+              borderRadius: 6,
+              textStyle: {
+                fontSize: 14,
+                color: '#111827'
+              }
+            }
+          }
         default:
           throw new Error(`Tipo de componente desconocido: ${type}`)
       }

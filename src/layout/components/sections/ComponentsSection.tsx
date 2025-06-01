@@ -107,8 +107,59 @@ export default function ComponentsSection() {
             <FileInputIcon size={16} />
             <span className="text-sm">Table</span>
           </div>
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded border border-blue-500 bg-blue-50 text-blue-800 cursor-move"
+            draggable
+            onDragStart={(e) => { e.dataTransfer.setData('component/type', 'card') }}
+          >
+            <SquareMousePointerIcon size={16} />
+            <span className="text-sm">Card</span>
+          </div>
+          {/* Input */}
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded border border-green-500 bg-green-50 text-green-800 cursor-move"
+            draggable
+            onDragStart={(e) => { e.dataTransfer.setData('component/type', 'label') }}
+          >
+            <FileInputIcon size={16} />
+            <span className="text-sm">Label</span>
+          </div>
+          {/* Input */}
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded border border-green-500 bg-green-50 text-green-800 cursor-move"
+            draggable
+            onDragStart={(e) => { e.dataTransfer.setData('component/type', 'imagen') }}
+          >
+            <FileInputIcon size={16} />
+            <span className="text-sm">Timagen</span>
+          </div>
+          {/* Input */}
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded border border-green-500 bg-green-50 text-green-800 cursor-move"
+            draggable
+            onDragStart={(e) => { e.dataTransfer.setData('component/type', 'textArea') }}
+          >
+            <FileInputIcon size={16} />
+            <span className="text-sm">TexArea</span>
+          </div>
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded border border-green-500 bg-green-50 text-green-800 cursor-move"
+            draggable
+            onDragStart={(e) => { e.dataTransfer.setData('component/type', 'calendar') }}
+          >
+            <FileInputIcon size={16} />
+            <span className="text-sm">Calendario</span>
+          </div>
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded border border-green-500 bg-green-50 text-green-800 cursor-move"
+            draggable
+            onDragStart={(e) => { e.dataTransfer.setData('component/type', 'search') }}
+          >
+            <FileInputIcon size={16} />
+            <span className="text-sm">Buscador</span>
+          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>
   )
-} 
+}

@@ -134,7 +134,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
 
       animateTyping(animatedContent, aiMessage, () => {
         if (pageFromServer) updatePage(pageFromServer)
-      }, 12, 3)
+      }, 8, 4)
     } catch (error) {
       setMessages((prev) => prev.slice(0, -1)) // quitar mensaje temporal
       setMessages((prev) => [
@@ -220,12 +220,12 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                           .trim()
                       }
                     </SyntaxHighlighter>
-                  )
+                    )
                   : (
                     <p className={index === messages.length - 1 && msg.content.length < 10 ? 'typing-cursor' : ''}>
                       {msg.content}
                     </p>
-                  )}
+                    )}
               </div>
             </CardContent>
           </Card>
@@ -235,11 +235,11 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       <div className="border-t p-4 flex gap-2">
         <Input
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => { setInput(e.target.value) }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault(); // evita que haga un salto de línea si es textarea, o que el form haga submit
-              handleSend();
+              e.preventDefault() // evita que haga un salto de línea si es textarea, o que el form haga submit
+              handleSend()
             }
           }}
           placeholder="Describe tu interfaz Flutter..."

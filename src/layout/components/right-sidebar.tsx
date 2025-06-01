@@ -5,9 +5,8 @@ import ComponentsSection from './sections/ComponentsSection'
 import ToolsSection from './sections/ToolsSection'
 import BlocksSection from './sections/BlocksSection'
 
-
 export default function RightSidebar() {
-  const { selectedComponent} = useComponentContext()
+  const { selectedComponent } = useComponentContext()
   const [width, setWidth] = useState(270)
   const resizerRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -43,7 +42,7 @@ export default function RightSidebar() {
     }
   }, [])
 
-  //const { resource: project } = useGetResource<Project>({ endpoint: ENDPOINTS.ULTIMO_PROJECT })
+  // const { resource: project } = useGetResource<Project>({ endpoint: ENDPOINTS.ULTIMO_PROJECT })
   // console.log('Pagina seleccionada: ', selectedPage)
   // console.log('Componente seleccionado:', selectedComponent)
   return (
