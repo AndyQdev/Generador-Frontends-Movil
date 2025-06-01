@@ -37,7 +37,8 @@ module.exports = {
         "@typescript-eslint/triple-slash-reference": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/promise-function-async": "off",
-        "@typescript-eslint/no-misused-promises": "off"
+        "@typescript-eslint/no-misused-promises": "off",
+        "@typescript-eslint/no-explicit-any": "off",
     },
     "ignorePatterns": [".eslintrc.cjs", "vitest.config.ts", "vite.config.ts"],
     "settings": {

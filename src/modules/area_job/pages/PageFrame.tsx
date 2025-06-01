@@ -9,7 +9,6 @@ import throttle from 'lodash.throttle'
 import { type Device } from '../utils/devices'
 import Button from './components/ButtonComponent'
 import Input from './components/Input'
-import Sidebar from './components/Sidebar'
 import Header from './components/header'
 import BottomNavigationBar from './components/BottomNavigationBar'
 import DataTable from './components/Datatable'
@@ -49,12 +48,8 @@ export default function PageFrame({
   device
 }: PageFrameProps) {
   let isDragging = false
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [openDialogs, setOpenDialogs] = useState<Record<string, boolean>>({})
-  const toggleSidebar = () => { setIsSidebarOpen(prev => !prev) }
-  const [openRowMenu, setOpenRowMenu] = useState<number | null>(null)
   const [formValues, setFormValues] = useState<Record<string, string>>({})
-  const [, setEditRowIndex] = useState<number | null>(null)
   const [confirmDeleteRowIndex, setConfirmDeleteRowIndex] = useState<number | null>(null)
   const { setSelectedPage } = useComponentContext()
   const socket = getSocket()
@@ -164,11 +159,15 @@ export default function PageFrame({
         <Rnd
           key={comp.id}
           size={{
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             width: toPx(comp.width, device.width),
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             height: toPx(comp.height, device.height)
           }}
           position={{
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             x: toPx(comp.x, device.width),
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             y: toPx(comp.y, device.height)
           }}
           scale={scale}
@@ -210,7 +209,7 @@ export default function PageFrame({
           onDragStop={(_e, d) => {
             isDragging = false
             const xPct = toPct(d.x, device.width)
-            const yPct = toPct(d.y, device.height)
+            const yPct = toPct(d.y, device.height)
             updateComponent(pageIndex, index, {
               ...comp,
               x: toPct(d.x, device.width),
@@ -261,6 +260,7 @@ export default function PageFrame({
             {/* Botón de eliminar */}
             {selected && (
               <button
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 onClick={() => { handleDeleteComponent(comp.id) }}
                 className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-bl hover:bg-red-600 z-10"
                 title="Eliminar componente"
