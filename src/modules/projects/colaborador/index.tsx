@@ -14,6 +14,10 @@ import UserFormDialog from './subUser-form'
 import { type User } from '../models/user.model'
 import { useGetResource } from '@/hooks/useApiResource'
 import { Badge } from '@/components/ui/badge'
+import EditColaboradorForm from './edit-colaborador-form'
+import { type ApiResponse } from '@/models'
+import { type KeyedMutator } from 'swr'
+import { type Colaborador } from '../models/user.model'
 
 const ColaboradorPage = (): JSX.Element => {
   useHeader([
@@ -22,8 +26,16 @@ const ColaboradorPage = (): JSX.Element => {
   ])
   const navigate = useNavigate()
   const [openModal, setOpenModal] = useState(false)
+  const [openEditModal, setOpenEditModal] = useState(false)
+  const [selectedColaborador, setSelectedColaborador] = useState<Colaborador | null>(null)
   const userStorage = JSON.parse(localStorage.getItem('user') ?? '{}')
   const { resource: user, mutate } = useGetResource<User>({ endpoint: ENDPOINTS.USER, id: userStorage.id })
+
+  const handleEdit = (colaborador: Colaborador) => {
+    setSelectedColaborador(colaborador)
+    setOpenEditModal(true)
+  }
+
   return (
     <section className='grid gap-0 w-full'>
       <div className="inline-flex items-center flex-wrap gap-2">
@@ -57,7 +69,7 @@ const ColaboradorPage = (): JSX.Element => {
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
-            <UserFormDialog setOpenModal={setOpenModal} mutate={mutate}/>
+            <UserFormDialog setOpenModal={setOpenModal} mutate={mutate} />
           </AlertDialogContent>
         </AlertDialog>
       </div>
@@ -108,13 +120,15 @@ const ColaboradorPage = (): JSX.Element => {
             },
             filtering: {
               enableFiltering: true,
-              columns: ['email', 'status']
+              columns: ['email']
             },
             actions: {
               enable: true,
               items: [
-                { label: 'Editar', onClick: () => { } },
-                { label: 'Ver Proyecto', onClick: () => { } }
+                { 
+                  label: 'Editar', 
+                  onClick: (row) => handleEdit(row) 
+                }
               ]
             },
             hiding: {
@@ -129,6 +143,18 @@ const ColaboradorPage = (): JSX.Element => {
           }}
         />
       </div>
+
+      <AlertDialog open={openEditModal} onOpenChange={setOpenEditModal}>
+        <AlertDialogContent>
+          {selectedColaborador && (
+            <EditColaboradorForm 
+              colaborador={selectedColaborador} 
+              setOpenModal={setOpenEditModal} 
+              mutate={mutate} 
+            />
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   )
 }

@@ -43,10 +43,14 @@ export const fetchData = async (url: string, options?: RequestInit, typeBlob?: b
       'Content-Type': 'application/json'
     }
   }
-  console.log(url, requestOptions)
+  console.log('URL de la petición:', url)
+  console.log('Opciones de la petición:', requestOptions)
   const response = await fetch(url, requestOptions)
+  console.log('Respuesta de la API:', response)
   await handleResponseErrors(response)
-  return !typeBlob ? await response.json() : response
+  const data = !typeBlob ? await response.json() : response
+  console.log('Datos de la respuesta:', data)
+  return data
 }
 
 type QueryOptions = Record<string, string | number | undefined>

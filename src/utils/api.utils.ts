@@ -6,6 +6,7 @@ export const ENDPOINTS = {
   PROJECTS: '/projects',
   ULTIMO_PROJECT: '/projects/last-worked',
   USER: '/auth/user',
+  USER_DETAIL: '/auth/user-detail',
   COLABORADOR: '/auth/subuser',
   RESET_PASSWORD: '/api/reset-password',
   RECOVER_PASSWORD: '/api/forgot-password',

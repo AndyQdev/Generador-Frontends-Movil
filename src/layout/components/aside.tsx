@@ -23,7 +23,7 @@ const Aside = ({ onToggleChat }: AsideProps) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-[258px]'}
       `}
     >
-      <div className="absolute top-4 -right-10 bg-background dark:bg-dark-background-primary p-2 rounded-r-md shadow-md flex flex-col gap-2">
+      <div className="absolute top-10 -right-10 bg-background dark:bg-dark-background-primary p-2 rounded-r-md shadow-md flex flex-col gap-2">
         <Button 
           variant="ghost" 
           size="icon" 

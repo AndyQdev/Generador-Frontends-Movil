@@ -65,7 +65,7 @@ const UserFormDialog = ({ setOpenModal, mutate }: IUserFormProps) => {
   })
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log(data)
+    console.log('Datos enviados a la API de creacion:', JSON.stringify(data, null, 2))
     toast.promise(createColaborador(data), {
       loading: 'Creando Colaborador...',
       success: () => {

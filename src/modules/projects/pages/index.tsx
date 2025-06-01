@@ -14,6 +14,9 @@ import { ENDPOINTS } from '@/utils'
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import UserFormDialog from './project-form'
 import { Badge } from '@/components/ui/badge'
+import EditProjectForm from './edit-project-form'
+import { type ApiResponse } from '@/models'
+import { type KeyedMutator } from 'swr'
 
 const ProjectPage = (): JSX.Element => {
   useHeader([
@@ -22,7 +25,14 @@ const ProjectPage = (): JSX.Element => {
   ])
   const navigate = useNavigate()
   const [openModal, setOpenModal] = useState(false)
+  const [openEditModal, setOpenEditModal] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const { allResource: projects, mutate } = useGetAllResource<Project>({ endpoint: ENDPOINTS.PROJECTS })
+
+  const handleEdit = (project: Project) => {
+    setSelectedProject(project)
+    setOpenEditModal(true)
+  }
 
   return (
     <section className='grid gap-0 w-full'>
@@ -61,7 +71,7 @@ const ProjectPage = (): JSX.Element => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <div className='overflow-x-auto px-1'>
+      <div className='overflow-x-auto px-1 '>
         <DataTable
           data={projects ?? []}
           columns={[
@@ -130,8 +140,14 @@ const ProjectPage = (): JSX.Element => {
             actions: {
               enable: true,
               items: [
-                { label: 'Editar', onClick: () => { } },
-                { label: 'Ver Proyecto', onClick: () => { } }
+                { 
+                  label: 'Editar', 
+                  onClick: (row) => handleEdit(row) 
+                },
+                { 
+                  label: 'Ver Proyecto', 
+                  onClick: (row) => navigate(`/area-trabajo/${row.id}`) 
+                }
               ]
             },
             hiding: {
@@ -146,6 +162,18 @@ const ProjectPage = (): JSX.Element => {
           }}
         />
       </div>
+
+      <AlertDialog open={openEditModal} onOpenChange={setOpenEditModal}>
+        <AlertDialogContent>
+          {selectedProject && (
+            <EditProjectForm 
+              project={selectedProject} 
+              setOpenModal={setOpenEditModal} 
+              mutate={mutate as KeyedMutator<ApiResponse<Project[]>>} 
+            />
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   )
 }

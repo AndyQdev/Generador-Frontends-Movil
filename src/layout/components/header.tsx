@@ -1,5 +1,5 @@
-import { CircleUser, LogOut, Menu, User } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { CircleUser, LogOut, Menu, User, Users, Plus } from 'lucide-react'
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet'
@@ -12,6 +12,14 @@ import { ModeToggle } from '@/components/mode-toggle'
 import { useProjectUsers } from '@/context/ProjectUsersContext'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { useGetResource } from '@/hooks/useApiResource'
+import { ENDPOINTS } from '@/utils'
+import { type Project } from '@/modules/projects/models/project.model'
+import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { useState } from 'react'
+import UserFormDialog from '@/modules/projects/colaborador/subUser-form'
+import { type User as UserType } from '@/modules/projects/models/user.model'
+import AssignColaboradorForm from '@/modules/projects/colaborador/assign-colaborador-form'
 
 const getInitials = (name: string): string => {
   return name
@@ -23,13 +31,47 @@ const getInitials = (name: string): string => {
 
 const Header = () => {
   const { breadcrumb } = useHeader()
-  // const { signOut } = useAuth()
   const navigate = useNavigate()
   const { users } = useProjectUsers()
+  const { areaId } = useParams()
+  const location = useLocation()
+  const [openModal, setOpenModal] = useState(false)
+  const [openAssignModal, setOpenAssignModal] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState(false)
+  const userStorage = JSON.parse(localStorage.getItem('user') ?? '{}')
+  const { resource: user, mutate } = useGetResource<UserType>({ endpoint: ENDPOINTS.USER, id: userStorage.id })
+
+  const { resource: activeProject } = useGetResource<Project>({
+    endpoint: areaId && areaId !== ':areaId' ? ENDPOINTS.PROJECTS : ENDPOINTS.ULTIMO_PROJECT,
+    id: areaId && areaId !== ':areaId' ? areaId : ''
+  })
+
+  const isProfilePage = location.pathname === PrivateRoutes.PROFILE
+  const isProjectsPage = location.pathname === PrivateRoutes.PROJECTS
+  const isAreaPage = location.pathname.includes('/area-trabajo/')
+  const isColaboradoresPage = location.pathname === PrivateRoutes.COLABOLADOR
+
+  const getTitle = () => {
+    if (isProfilePage) return 'Perfil'
+    if (isProjectsPage) return 'Proyectos'
+    if (isColaboradoresPage) return 'Colaboradores'
+    if (isAreaPage && activeProject) return activeProject.name
+    return ''
+  }
+
+  const handleOpenCreateModal = () => {
+    setOpenDropdown(false)
+    setOpenModal(true)
+  }
+
+  const handleOpenAssignModal = () => {
+    setOpenDropdown(false)
+    setOpenAssignModal(true)
+  }
 
   return (
     <header className="flex h-14 items-center gap-4 border-b px-4 lg:h-[60px] lg:px-6 bg-background border-secondary dark:bg-dark-background-primary">
-      
+
       <Sheet>
         <SheetTrigger asChild>
           <Button
@@ -51,23 +93,37 @@ const Header = () => {
         </SheetContent>
       </Sheet>
       <div className="w-full flex-1">
-        <Breadcrumb>
-          <BreadcrumbList>
-            {breadcrumb.map((item, index) => (
-              item.path
-                ? (<div className='flex items-center sm:gap-2' key={index}>
-                  <BreadcrumbItem>
+        <div className="w-full flex-1 flex items-center justify-between">
+          <Breadcrumb>
+            <BreadcrumbList>
+              {breadcrumb.map((item, index) => (
+                item.path
+                  ? (
+                    <div className="flex items-center sm:gap-2" key={index}>
+                      <BreadcrumbItem>
+                        <Link to={item.path}>{item.label}</Link>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                    </div>
+                  )
+                  : (
+                    <BreadcrumbItem key={index}>
+                      <BreadcrumbPage className="text-light-primary font-semibold">{item.label}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  )
+              ))}
+            </BreadcrumbList>
+          </Breadcrumb>
 
-                    <Link to={item.path}>{item.label}</Link>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                </div>)
-                : <BreadcrumbItem key={index}>
-                    <BreadcrumbPage className='text-light-primary font-semibold'>{item.label}</BreadcrumbPage>
-                  </BreadcrumbItem>
-            ))}
-          </BreadcrumbList>
-        </Breadcrumb>
+          {getTitle() && (
+            <div className="flex-1 flex justify-center">
+              <div className="text-xl font-semibold text-gray-600 dark:text-gray-300">
+                {getTitle()}
+              </div>
+            </div>
+          )}
+        </div>
+
       </div>
       <div className="flex items-center gap-2">
         <TooltipProvider>
@@ -92,6 +148,45 @@ const Header = () => {
         </TooltipProvider>
       </div>
       <ModeToggle />
+      <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="secondary" size="icon" className="rounded-full">
+            <Users className="h-5 w-5" />
+            <span className="sr-only">Acciones de colaboradores</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Colaboradores</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="cursor-pointer" onClick={handleOpenCreateModal}>
+            <Plus className="mr-2 h-4 w-4" />
+            Crear nuevo colaborador
+          </DropdownMenuItem>
+          {isAreaPage && activeProject && (
+            <DropdownMenuItem className="cursor-pointer" onClick={handleOpenAssignModal}>
+              <Users className="mr-2 h-4 w-4" />
+              Asignar colaboradores al proyecto
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={openModal} onOpenChange={setOpenModal}>
+        <AlertDialogContent>
+          <UserFormDialog setOpenModal={setOpenModal} mutate={mutate} />
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={openAssignModal} onOpenChange={setOpenAssignModal}>
+        <AlertDialogContent>
+          <AssignColaboradorForm 
+            setOpenModal={setOpenAssignModal} 
+            mutate={mutate} 
+            projectId={activeProject?.id.toString() ?? ''} 
+          />
+        </AlertDialogContent>
+      </AlertDialog>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
@@ -106,12 +201,7 @@ const Header = () => {
             <User className="mr-2 h-4 w-4" />
             Perfil
           </DropdownMenuItem>
-          {/* <DropdownMenuItem onClick={() => { navigate(PrivateRoutes.SETTINGS) }} className='cursor-pointer'>
-            <Settings className="mr-2 h-4 w-4" />
-            Configuración
-          </DropdownMenuItem> */}
           <DropdownMenuSeparator />
-          {/* onClick={signOut} */}
           <DropdownMenuItem
             className='cursor-pointer'
             onClick={() => {
