@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { MessageSquare, X } from 'lucide-react'
+import { MessageSquare, X, StopCircle, TestTube } from 'lucide-react'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import { useComponentContext } from '@/context/ComponentContext'
 import { API_BASEURL } from '@/utils'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { type Page } from '@/modules/projects/models/page.model'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 
 interface ChatSidebarProps {
   onClose: () => void
@@ -22,11 +24,15 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
   ])
   const [input, setInput] = useState('')
   const [width, setWidth] = useState(360)
+  const [isTestMode, setIsTestMode] = useState(false)
+  const [testJson, setTestJson] = useState('')
   const resizerRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
   const { updatePage, selectedPage } = useComponentContext()
   const [isThinking, setIsThinking] = useState(false)
   const [pendingPage, setPendingPage] = useState<Page | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
   useEffect(() => {
     const resizer = resizerRef.current
     const sidebar = sidebarRef.current
@@ -81,6 +87,23 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       loadingIntervalRef.current = null
     }
   }
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+    stopLoadingDots()
+    setIsThinking(false)
+    setMessages((prev) => prev.slice(0, -1))
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: 'ai',
+        content: '⚠️ Generación detenida por el usuario.'
+      }
+    ])
+  }
+
   const handleSend = async () => {
     if (!input.trim() || !selectedPage) return
 
@@ -98,6 +121,10 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
     setMessages((prev) => [...prev, loadingMessage])
     startLoadingDots()
     setIsThinking(true)
+
+    // Crear nuevo AbortController para esta petición
+    abortControllerRef.current = new AbortController()
+
     try {
       const body = { prompt, page_id: selectedPage.id }
 
@@ -107,7 +134,8 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        signal: abortControllerRef.current.signal
       })
 
       if (!response.ok) throw new Error('Error en la respuesta del servidor')
@@ -150,6 +178,11 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       setIsThinking(false)
     }
   }
+
+  const handleSend2 = async () => {
+    
+  }
+
   const animateTyping = (
     text: string,
     baseMessage: any,
@@ -172,6 +205,33 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
   const isJSONMessage = (text: string) => {
     return text.startsWith('✅ Componente generado:\n```json')
   }
+
+  const handleTestResponse = () => {
+    try {
+      const jsonData = JSON.parse(testJson)
+      const animatedContent = `✅ Componente generado:\n\`\`\`json\n${JSON.stringify(
+        jsonData,
+        null,
+        2
+      )}\n\`\`\``
+
+      const aiMessage = { role: 'ai', content: '' }
+      setMessages((prev) => [...prev, aiMessage])
+
+      animateTyping(animatedContent, aiMessage, () => {
+        if (jsonData.page) updatePage(jsonData.page)
+      }, 8, 4)
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'ai',
+          content: '⚠️ Error en el formato JSON de prueba.'
+        }
+      ])
+    }
+  }
+
   return (
     <aside
       ref={sidebarRef}
@@ -183,9 +243,47 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
           <MessageSquare className="w-7 h-7" />
           <CardTitle>Chat - {selectedPage?.name ?? 'Sin página'}</CardTitle>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className={isTestMode ? 'text-yellow-500' : ''}>
+                <TestTube className="w-5 h-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Modo Prueba</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={isTestMode}
+                    onChange={(e) => setIsTestMode(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <label>Activar modo prueba</label>
+                </div>
+                {isTestMode && (
+                  <>
+                    <Textarea
+                      value={testJson}
+                      onChange={(e) => setTestJson(e.target.value)}
+                      placeholder="Ingresa el JSON de prueba..."
+                      className="h-[200px] font-mono text-sm"
+                    />
+                    <Button onClick={handleTestResponse} className="w-full">
+                      Probar Respuesta
+                    </Button>
+                  </>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -238,14 +336,31 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
           onChange={(e) => { setInput(e.target.value) }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault() // evita que haga un salto de línea si es textarea, o que el form haga submit
-              handleSend()
+              e.preventDefault()
+              if (isTestMode) {
+                handleTestResponse()
+              } else {
+                handleSend()
+              }
             }
           }}
-          placeholder="Describe tu interfaz Flutter..."
+          placeholder={isTestMode ? "Modo prueba activado..." : "Describe tu interfaz Flutter..."}
           className="flex-1"
+          disabled={isTestMode}
         />
-        <Button onClick={handleSend}>Enviar</Button>
+        {isThinking ? (
+          <Button variant="destructive" onClick={handleStop}>
+            <StopCircle className="w-4 h-4 mr-2" />
+            Detener
+          </Button>
+        ) : (
+          <Button 
+            onClick={isTestMode ? handleTestResponse : handleSend2}
+            disabled={isTestMode && !testJson.trim()}
+          >
+            {isTestMode ? 'Probar' : 'Enviar'}
+          </Button>
+        )}
       </div>
 
       {/* Resizer */}
@@ -260,3 +375,4 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
 }
 
 export default ChatSidebar
+
