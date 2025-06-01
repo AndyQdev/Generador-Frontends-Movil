@@ -46,7 +46,7 @@ export default function RightSidebar() {
     }
   }, [isCollapsed])
 
-  //const { resource: project } = useGetResource<Project>({ endpoint: ENDPOINTS.ULTIMO_PROJECT })
+  // const { resource: project } = useGetResource<Project>({ endpoint: ENDPOINTS.ULTIMO_PROJECT })
   // console.log('Pagina seleccionada: ', selectedPage)
   // console.log('Componente seleccionado:', selectedComponent)
   return (

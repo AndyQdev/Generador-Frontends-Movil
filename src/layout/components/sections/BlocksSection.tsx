@@ -6,9 +6,9 @@ import {
 import {
   ChevronRightIcon,
   Blocks
+  , SquareMousePointerIcon
 } from 'lucide-react'
 import { useState } from 'react'
-import { SquareMousePointerIcon } from 'lucide-react'
 
 export default function BlocksSection() {
   const [isBlocksOpen, setIsBlocksOpen] = useState(true)
@@ -62,4 +62,4 @@ export default function BlocksSection() {
       </CollapsibleContent>
     </Collapsible>
   )
-} 
+}
