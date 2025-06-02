@@ -82,6 +82,13 @@ export default function Editor() {
   const [, setUsersInProject] = useState<User[]>([])
   const { deleteResource } = useDeleteResource(ENDPOINTS.PROJECTS+'/pages/'+pageToDelete)
 
+  // Estados para manejar el historial y el portapapeles
+  const [history, setHistory] = useState<Page[][]>([pages])
+  const [historyIndex, setHistoryIndex] = useState(0)
+  const [clipboard, setClipboard] = useState<ComponentItem | null>(null)
+  const isHistoryUpdate = useRef(false)
+  const lastPagesRef = useRef(pages)
+
   useEffect(() => {
     if (!activeProject) return
     setPages(activeProject.pages ?? [])
@@ -676,9 +683,10 @@ export default function Editor() {
     const updatedPages = [...pages]
     const pageIndex = updatedPages.findIndex((p) => p.id === pageId)
     if (pageIndex !== -1) {
-      if (isComponentItem(newComponent)) { // Verifica que el componente sea válido
+      if (isComponentItem(newComponent)) {
         updatedPages[pageIndex].components.push(newComponent)
         setPages(updatedPages)
+        addToHistory(updatedPages)
       } else {
         console.error('El componente no es válido:', newComponent)
       }
@@ -714,6 +722,7 @@ export default function Editor() {
       component: { id }
     })
     setPages(updatedPages)
+    addToHistory(updatedPages)
   }
 
   // Obtener todos los botones de todas las páginas
@@ -816,6 +825,120 @@ export default function Editor() {
     setShowDeleteConfirm(false)
     setPageToDelete(null)
   }
+
+  // Función para agregar un nuevo estado al historial
+  const addToHistory = (newPages: Page[]) => {
+    if (isHistoryUpdate.current) return
+    if (JSON.stringify(lastPagesRef.current) === JSON.stringify(newPages)) return
+
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(structuredClone(newPages))
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+    lastPagesRef.current = structuredClone(newPages)
+  }
+
+  // Función para deshacer (Ctrl+Z)
+  const handleUndo = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'z') {
+      e.preventDefault()
+      if (historyIndex > 0) {
+        isHistoryUpdate.current = true
+        const newIndex = historyIndex - 1
+        setHistoryIndex(newIndex)
+        const previousState = structuredClone(history[newIndex])
+        setPages(previousState)
+        lastPagesRef.current = previousState
+        setTimeout(() => {
+          isHistoryUpdate.current = false
+        }, 0)
+      }
+    }
+  }
+
+  // Función para rehacer (Ctrl+Y)
+  const handleRedo = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'y') {
+      e.preventDefault()
+      if (historyIndex < history.length - 1) {
+        isHistoryUpdate.current = true
+        const newIndex = historyIndex + 1
+        setHistoryIndex(newIndex)
+        const nextState = structuredClone(history[newIndex])
+        setPages(nextState)
+        lastPagesRef.current = nextState
+        setTimeout(() => {
+          isHistoryUpdate.current = false
+        }, 0)
+      }
+    }
+  }
+
+  // Función para copiar (Ctrl+C)
+  const handleCopy = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'c' && selectedComponent) {
+      e.preventDefault()
+      setClipboard(structuredClone(selectedComponent))
+      toast.success('Componente copiado al portapapeles', {
+        style: {
+          backgroundColor: '#FFD700', // amarillo dorado
+          color: '#000'               // texto negro para buen contraste
+        },
+        icon: '📋'
+      })
+    }
+  }
+
+  // Función para pegar (Ctrl+V)
+  const handlePaste = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'v' && clipboard) {
+      e.preventDefault()
+      const newComponent = {
+        ...structuredClone(clipboard),
+        id: Date.now().toString(),
+        x: clipboard.x + 10, // Desplazar ligeramente para que sea visible
+        y: clipboard.y + 10
+      }
+
+      const updatedPages = structuredClone(pages)
+      updatedPages[currentPageIndex].components.push(newComponent)
+      setPages(updatedPages)
+      addToHistory(updatedPages)
+      toast.success('Componente pegado')
+    }
+  }
+
+  // Efecto para manejar los eventos del teclado
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      handleUndo(e)
+      handleRedo(e)
+      handleCopy(e)
+      handlePaste(e)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [historyIndex, history, selectedComponent, clipboard, currentPageIndex])
+
+  // Efecto para actualizar el historial cuando cambian las páginas
+  useEffect(() => {
+    if (!isHistoryUpdate.current) {
+      addToHistory(pages)
+    }
+  }, [pages])
+
+  // Efecto para inicializar el historial
+  useEffect(() => {
+    if (activeProject?.pages) {
+      const initialPages = structuredClone(activeProject.pages)
+      setHistory([initialPages])
+      setHistoryIndex(0)
+      lastPagesRef.current = initialPages
+    }
+  }, [activeProject?.pages])
 
   return (
     <div className="flex flex-col h-screen w-full">

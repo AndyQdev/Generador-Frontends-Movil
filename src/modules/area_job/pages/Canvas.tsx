@@ -46,6 +46,37 @@ export default function Canvas({
   const wrapperRef = useRef<HTMLDivElement>(null)
   const [device, setDevice] = useState<Device>(DEVICES[0])
   const api = useRef<ReactZoomPanPinchRef | null>(null)
+  const isCtrlPressed = useRef(false)
+
+  // Efecto para manejar el estado de la tecla Ctrl
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Control') {
+        isCtrlPressed.current = true
+        if (wrapperRef.current) {
+          wrapperRef.current.style.cursor = 'grab'
+        }
+      }
+    }
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Control') {
+        isCtrlPressed.current = false
+        if (wrapperRef.current) {
+          wrapperRef.current.style.cursor = 'default'
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
   /* ——— Zoom con Ctrl + wheel ——— */
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
@@ -71,6 +102,27 @@ export default function Canvas({
     },
     []
   )
+
+  // Manejador para el evento de mouse
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (isCtrlPressed.current) {
+      e.preventDefault()
+      setMode('hand')
+      if (wrapperRef.current) {
+        wrapperRef.current.style.cursor = 'grabbing'
+      }
+    }
+  }, [])
+
+  const handleMouseUp = useCallback(() => {
+    if (isCtrlPressed.current) {
+      setMode('select')
+      if (wrapperRef.current) {
+        wrapperRef.current.style.cursor = 'grab'
+      }
+    }
+  }, [])
+
   useEffect(() => {
     if (mode === 'hand' && wrapperRef.current) {
       wrapperRef.current.style.overflow = 'hidden'
@@ -78,6 +130,7 @@ export default function Canvas({
       wrapperRef.current.style.overflow = 'auto'
     }
   }, [mode])
+
   return (
     <div className="w-full h-full bg-neutral-900 relative">
       <TransformWrapper
@@ -87,12 +140,11 @@ export default function Canvas({
         initialScale={1}
         centerOnInit={true}
         centerZoomedOut={true}
-        onZoomStart={() => { // 🔑 se dispara cuando empieza el zoom
-          setSelectedComponent(null) // limpias componente seleccionado
-          onSelectPage(null) // "ninguna página seleccionada"
+        onZoomStart={() => {
+          setSelectedComponent(null)
+          onSelectPage(null)
         }}
-        /*  ⬇️  La librería ya NO intercepta la rueda */
-        wheel={{ // la rueda solo actúa con Ctrl
+        wheel={{
           step: 30,
           activationKeys: ['Control']
         }}
@@ -102,10 +154,9 @@ export default function Canvas({
           document.body.style.cursor = 'grabbing'
         }}
         onPanningStop={() => {
-          document.body.style.cursor = 'default'
+          document.body.style.cursor = isCtrlPressed.current ? 'grab' : 'default'
         }}
       >
-        {/* {({ setTransform, bg-neutral-900 zoomIn, zoomOut, resetTransform, ...rest }) => ( */}
         {({ zoomIn, zoomOut, resetTransform, instance }) => {
           const scale = instance.transformState.scale
           const deselect = () => {
@@ -121,13 +172,15 @@ export default function Canvas({
               <div
                 ref={wrapperRef}
                 onWheel={handleWheel}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
                 className={
                   'w-full h-full overflow-auto scrollbar-hide ' +
                   (mode === 'hand' ? 'cursor-grab' : 'cursor-default')
                 }
                 style={{
-                  scrollbarWidth: 'none', // Firefox
-                  msOverflowStyle: 'none' // IE 10+
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none'
                 }}
               >
                 <TransformComponent 
