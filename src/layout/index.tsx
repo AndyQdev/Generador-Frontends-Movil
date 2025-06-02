@@ -30,11 +30,10 @@ const Layout = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <div
-          className={`flex flex-row w-full ${
-            isCanvasRoute
+          className={`flex flex-row w-full ${isCanvasRoute
               ? 'h-full'
               : 'h-[calc(100dvh-56px)] lg:h-[calc(100dvh-60px)]'
-          } overflow-y-auto bg-light-bg-main dark:bg-dark-background-primary`}
+            }  bg-light-bg-main dark:bg-dark-background-primary`}
         >
           <MainPage>
             <Outlet />

@@ -70,7 +70,7 @@ export default function RightSidebar() {
       <aside
         ref={sidebarRef}
         style={{ width: isCollapsed ? '0px' : `${width}px` }}
-        className="hidden lg:flex flex-col dark:bg-[#111827] min-w-[0px] h-[100dvh] border-l bg-background overflow-hidden relative"
+        className="hidden lg:flex flex-col dark:bg-[#111827] min-w-[0px] h-[100dvh] border-l bg-background overflow-y-auto relative"
       >
         {/* Resizer - siempre presente pero solo funcional cuando no está colapsado */}
         <div

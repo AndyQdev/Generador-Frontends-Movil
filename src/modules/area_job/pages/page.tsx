@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useComponentContext } from '@/context/ComponentContext'
 import { useHeader } from '@/hooks'
 import { PrivateRoutes } from '@/models/routes.model'
-import { API_BASEURL, ENDPOINTS } from '@/utils'
-import { useGetResource, useUpdateResource } from '@/hooks/useApiResource'
+import { API_BASEURL, ENDPOINTS, buildUrl } from '@/utils'
+import { useGetResource, useUpdateResource, useDeleteResource } from '@/hooks/useApiResource'
 import { type UpdateProject, type Project } from '@/modules/projects/models/project.model'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -18,6 +18,8 @@ import { type CardComponent, type BottomNavigationBarComponent, type ButtonCompo
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useProjectUsers } from '@/context/ProjectUsersContext'
+import { deleteResource } from '@/services/crud.service'
+import NewPageDialog from './NewPageDialog'
 
 export type ComponentItem =
   | ButtonComponent
@@ -63,28 +65,21 @@ export default function Editor() {
   const { resource: project, mutate } = useGetResource<Project>({ endpoint: ENDPOINTS.ULTIMO_PROJECT })
   const { updateResource: updateProject } = useUpdateResource<UpdateProject>(ENDPOINTS.PROJECTS)
   const { resource: projectId, mutate: mutateId } = useGetResource<Project>({
-    endpoint: areaId && areaId !== ':areaId' ? ENDPOINTS.PROJECTS : ENDPOINTS.ULTIMO_PROJECT, // si no es valido, no busca nada
+    endpoint: areaId && areaId !== ':areaId' ? ENDPOINTS.PROJECTS : ENDPOINTS.ULTIMO_PROJECT,
     id: areaId && areaId !== ':areaId' ? areaId : ''
   })
   const [pages, setPages] = useState<Page[]>([
     { id: '1', name: 'Página 1', components: [] }
   ])
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
-  const { setSelectedComponent, selectedComponent, selectedPage } = useComponentContext()
+  const { setSelectedComponent, selectedComponent, selectedPage, setSelectedPage } = useComponentContext()
   const prevPagesLen = useRef(0)
   const [openDlg, setOpenDlg] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [creating, setCreating] = useState(false)
-  const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null)
-  const [selectedImage, setSelectedImage] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [loadingMsg, setLoadingMsg] = useState('')
-  const [genCode, setGenCode] = useState<string | null>(null)
-  const dotsRef = useRef<NodeJS.Timeout | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [pageToDelete, setPageToDelete] = useState<string | null>(null)
   const { setUsers } = useProjectUsers()
   const [, setUsersInProject] = useState<User[]>([])
+  const { deleteResource } = useDeleteResource(ENDPOINTS.PROJECTS+'/pages/'+pageToDelete)
 
   useEffect(() => {
     if (!activeProject) return
@@ -693,70 +688,6 @@ export default function Editor() {
     })
   }
 
-  const handleCreatePage = async () => {
-    if (!newName.trim()) return
-    setCreating(true)
-    setIsGenerating(true)
-    setPreviewUrl(null)
-    startDots()
-    try {
-      const formData = new FormData()
-      formData.append('name', newName)
-
-      if (selectedImage) {
-        formData.append('img', selectedImage) // clave debe ser exactamente 'img'
-      }
-      const response = await fetch(`${API_BASEURL}${ENDPOINTS.PROJECTS}/${activeProject?.id}/pages`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
-        body: formData
-      })
-
-      if (!response.ok) throw new Error('No se pudo crear la página')
-
-      const { data: createdPage } = await response.json()
-
-      stopDots()
-      const pretty = JSON.stringify(createdPage.components ?? [], null, 2)
-
-      typeCode(pretty, () => {
-        /* actualiza botón -> ruta */
-        if (selectedButtonId) {
-          const updated = [...pages]
-          for (const page of updated) {
-            const btn = page.components.find(
-              (c) => c.type === 'button' && c.id === selectedButtonId
-            ) as ButtonComponent | undefined
-            if (btn) {
-              btn.route = createdPage.id
-              break
-            }
-          }
-          setPages(updated)
-        }
-
-        /* agrega la nueva página */
-        setPages(prev => [...prev, createdPage])
-
-        /* cierra diálogo y limpia */
-        setOpenDlg(false)
-        setNewName('')
-        setSelectedImage(null)
-        setSelectedButtonId(null)
-        toast.success('Página creada exitosamente')
-      }, 8, 2)
-    } catch (e) {
-      stopDots()
-      toast.error('No se pudo crear la página')
-    } finally {
-      setCreating(false)
-      setIsGenerating(false)
-    }
-  }
-
-  const [, setSelectedComponentId] = useState<string | null>(null)
   const handleDeleteComponent = (id: string) => {
     const updatedPages = [...pages]
     updatedPages[currentPageIndex].components = updatedPages[currentPageIndex].components.filter(
@@ -770,8 +701,8 @@ export default function Editor() {
       component: { id }
     })
     setPages(updatedPages)
-    setSelectedComponentId(null)
   }
+
   // Obtener todos los botones de todas las páginas
   const allButtons = pages.flatMap((page, pageIndex) =>
     page.components
@@ -812,141 +743,108 @@ export default function Editor() {
     }
   }
   const currentPage = pages[currentPageIndex] ?? null
-  const startDots = () => {
-    let i = 0
-    dotsRef.current = setInterval(() => {
-      i = (i + 1) % 4
-      setLoadingMsg(`🛠️ Generando boceto con IA${'.'.repeat(i)}`)
-    }, 400)
+
+  const handleDeletePage = (pageId: string) => {
+    setPageToDelete(pageId)
+    setShowDeleteConfirm(true)
   }
-  const stopDots = () => {
-    if (dotsRef.current) clearInterval(dotsRef.current)
-    setLoadingMsg('')
-  }
-  const typeCode = (
-    full: string,
-    onComplete?: () => void,
-    step = 2,
-    delay = 10
-  ) => {
-    let idx = 0
-    const int = setInterval(() => {
-      if (idx <= full.length) {
-        setGenCode(full.slice(0, idx))
-        idx += step
-      } else {
-        clearInterval(int)
-        onComplete?.() // 🔔 dispara aquí
+
+  const confirmDeletePage = async () => {
+    if (!pageToDelete) return
+    try {
+      await deleteResource(pageToDelete)
+
+      setPages(prevPages => {
+        const updatedPages = prevPages.filter(p => p.id !== pageToDelete)
+        // Si la página eliminada era la actual, seleccionar la primera página disponible
+        if (currentPageIndex >= updatedPages.length) {
+          setCurrentPageIndex(0)
+        }
+        return updatedPages
+      })
+
+      // Actualizar el proyecto en el servidor
+      if (activeProject) {
+        await updateProject(
+          {
+            id: activeProject.id,
+            create_date: activeProject.create_date,
+            name: activeProject.name,
+            descripcion: activeProject.descripcion,
+            status: activeProject.status,
+            last_modified: new Date(),
+            pages: pages.filter(p => p.id !== pageToDelete)
+          }
+        )
+        if (mutate) {
+          void mutate()
+        }
+        if (mutateId) {
+          void mutateId()
+        }
       }
-    }, delay)
+
+      toast.success('Página eliminada exitosamente')
+    } catch (error) {
+      console.error('Error al eliminar la página:', error)
+      toast.error('Error al eliminar la página')
+    } finally {
+      // Limpiar el estado
+      setShowDeleteConfirm(false)
+      setPageToDelete(null)
+      setSelectedComponent(null)
+      if (setSelectedPage) {
+        setSelectedPage(null)
+      }
+    }
   }
+
+  const cancelDeletePage = () => {
+    setShowDeleteConfirm(false)
+    setPageToDelete(null)
+  }
+
   return (
     <div className="flex flex-col h-screen w-full">
-
-    {/* ------------ Diálogo Crear página ------------- */}
-    <Dialog open={openDlg} onOpenChange={setOpenDlg}>
+      {/* Diálogo de confirmación de eliminación */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent>
           <AlertDialogHeader>
-            <DialogTitle>Nueva página</DialogTitle>
+            <DialogTitle>Eliminar página</DialogTitle>
           </AlertDialogHeader>
-
           <div className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Nombre</label>
-              <Input
-                value={newName}
-                onChange={e => { setNewName(e.target.value) }}
-                placeholder="Página de inicio…"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Asociar a botón</label>
-              <Select
-                value={selectedButtonId ?? ''}
-                onValueChange={(value) => { setSelectedButtonId(value) }}
-              >
-                <SelectTrigger className="w-full border border-gray-300 rounded px-2 py-1 text-sm">
-                  <SelectValue placeholder="Seleccionar botón..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {allButtons.map((button) => (
-                    <SelectItem key={button.id} value={button.id}>
-                      {button.label} (Página: {button.pageName})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Imagen de boceto (opcional)</label>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0] ?? null
-                  setSelectedImage(file)
-
-                  if (file) {
-                    const url = URL.createObjectURL(file)
-                    setPreviewUrl(url)
-                  } else {
-                    setPreviewUrl(null)
-                  }
-                }}
-              />
-              <div className="mt-3 h-[300px] overflow-y-auto border rounded-md bg-muted p-2">
-                {/* Mostrar imagen solo si no se está generando */}
-                {!isGenerating && previewUrl && (
-                  <img
-                    src={previewUrl}
-                    className="w-full max-h-full object-cover rounded"
-                    alt="Previsualización del boceto"
-                  />
-                )}
-
-                {/* Mostrar mensaje de carga animado */}
-                {isGenerating && !genCode && (
-                  <p className="text-sm font-medium whitespace-pre-line">{loadingMsg}</p>
-                )}
-
-                {/* Mostrar código generado con scroll interno */}
-                {genCode && (
-                  <SyntaxHighlighter
-                    language="json"
-                    style={oneDark}
-                    wrapLongLines
-                    customStyle={{
-                      fontSize: '0.75rem',
-                      background: 'transparent',
-                      margin: 0,
-                      padding: 0
-                    }}
-                  >
-                    {genCode}
-                  </SyntaxHighlighter>
-                )}
-              </div>
-            </div>
-
+            <p>¿Estás seguro de que deseas eliminar esta página? Esta acción no se puede deshacer.</p>
             <div className="flex justify-end gap-2 pt-2">
               <button
-                disabled={creating || isGenerating}
-                onClick={() => { setOpenDlg(false) }}
-                className="px-3 py-1.5 text-sm rounded border hover:bg-gray-100 disabled:opacity-50"
+                onClick={cancelDeletePage}
+                className="px-3 py-1.5 text-sm rounded border hover:bg-gray-100"
               >
                 Cancelar
               </button>
               <button
-                disabled={creating}
-                onClick={handleCreatePage}
-                className="px-3 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                onClick={confirmDeletePage}
+                className="px-3 py-1.5 text-sm rounded bg-red-600 text-white hover:bg-red-700"
               >
-                Guardar
+                Eliminar
               </button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Reemplazar el diálogo de Nueva Página con el nuevo componente */}
+      <NewPageDialog
+        open={openDlg}
+        onOpenChange={setOpenDlg}
+        activeProjectId={activeProject?.id ?? ''}
+        allButtons={allButtons}
+        onPageCreated={(newPage) => {
+          setPages(prev => [...prev, newPage])
+        }}
+        onUpdatePages={setPages}
+        pages={pages}
+      />
+
       {/* Lienzo */}
       <Canvas
         pages={pages}
@@ -964,6 +862,7 @@ export default function Editor() {
         onSubmit={onSubmit}
         handleExport={handleExport}
         setOpenDlg={setOpenDlg}
+        onDeletePage={handleDeletePage}
       />
     </div>
   )

@@ -40,6 +40,7 @@ interface PageFrameProps {
   pageIndex: number
   currentProjectId: string
   device: Device
+  onDeletePage?: (pageId: string) => void // Nueva prop para eliminar página
 }
 export default function PageFrame({
   page,
@@ -54,7 +55,8 @@ export default function PageFrame({
   currentPageId,
   pageIndex,
   currentProjectId,
-  device
+  device,
+  onDeletePage
 }: PageFrameProps) {
   let isDragging = false
   const [confirmDeleteRowIndex, setConfirmDeleteRowIndex] = useState<number | null>(null)
@@ -96,6 +98,18 @@ export default function PageFrame({
         "
       >
         {page.name}
+        {onDeletePage && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDeletePage(page.id)
+            }}
+            className="ml-2 text-red-500 hover:text-red-600 pointer-events-auto"
+            title="Eliminar página"
+          >
+            ×
+          </button>
+        )}
       </div>
 
     <div ref={pageRef}

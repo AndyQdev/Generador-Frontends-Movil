@@ -24,6 +24,7 @@ interface CanvasProps {
   handleExport: () => void // Función para exportar
   setOpenDlg: (open: boolean) => void
   currentProjectId: string
+  onDeletePage?: (pageId: string) => void // Nueva prop para eliminar página
 }
 
 export default function Canvas({
@@ -38,7 +39,8 @@ export default function Canvas({
   onSubmit,
   handleExport,
   setOpenDlg,
-  currentProjectId
+  currentProjectId,
+  onDeletePage
 }: CanvasProps) {
   const [mode, setMode] = useState<'select' | 'hand'>('select')
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -52,6 +54,7 @@ export default function Canvas({
       // ---------------  ZOOM  Ctrl + Wheel ---------------
       if (ctrlKey) {
         e.preventDefault()
+        e.stopPropagation()
         // deltaY negativo -> zoom‑in, positivo -> zoom‑out
         if (deltaY < 0) api.current?.zoomIn()
         else api.current?.zoomOut()
@@ -66,7 +69,7 @@ export default function Canvas({
         })
       }
     },
-    [] // <- pásale la ref que te llega en el render‑prop
+    []
   )
   useEffect(() => {
     if (mode === 'hand' && wrapperRef.current) {
@@ -79,12 +82,14 @@ export default function Canvas({
     <div className="w-full h-full bg-neutral-900 relative">
       <TransformWrapper
         onInit={(ref) => { api.current = ref }}
-        minScale={0.5}
+        minScale={0.25}
         maxScale={2}
         initialScale={1}
+        centerOnInit={true}
+        centerZoomedOut={true}
         onZoomStart={() => { // 🔑 se dispara cuando empieza el zoom
           setSelectedComponent(null) // limpias componente seleccionado
-          onSelectPage(null) // “ninguna página seleccionada”
+          onSelectPage(null) // "ninguna página seleccionada"
         }}
         /*  ⬇️  La librería ya NO intercepta la rueda */
         wheel={{ // la rueda solo actúa con Ctrl
@@ -125,7 +130,21 @@ export default function Canvas({
                   msOverflowStyle: 'none' // IE 10+
                 }}
               >
-                <TransformComponent wrapperStyle={{ width: '100%' }}>
+                <TransformComponent 
+                  wrapperStyle={{ 
+                    width: '100%',
+                    height: '100%',
+                    position: 'fixed',
+                    left: 0
+                  }}
+                  contentStyle={{ 
+                    margin: '20px', 
+                    border: '1px solid #ccc',
+                    minWidth: '200%',
+                    minHeight: '100%',
+                    position: 'relative'
+                  }}
+                >
                   {/* ------------- FRAMES ------------- */}
                   <div
                     className="
@@ -136,6 +155,7 @@ export default function Canvas({
                       gap-y-16
                       gap-x-10
                       justify-items-center
+                      items-center
                       py-16
                       w-max
                       mx-auto
@@ -166,6 +186,7 @@ export default function Canvas({
                           onDrop={(e) => { onDrop(e, p.id, scale) }}
                           scale={scale} // Pasa la escala actual al frame
                           currentPageId={current?.id ?? ''} // Pasa el id de la página actual o una cadena vacía si es null
+                          onDeletePage={onDeletePage}
                         />
                     ))}
                   </div>
