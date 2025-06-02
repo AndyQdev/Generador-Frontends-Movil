@@ -158,6 +158,14 @@ export default function ComponentsSection() {
             <FileInputIcon size={16} />
             <span className="text-sm">Buscador</span>
           </div>
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded border border-green-500 bg-green-50 text-green-800 cursor-move"
+            draggable
+            onDragStart={(e) => { e.dataTransfer.setData('component/type', 'icon') }}
+          >
+            <FileInputIcon size={16} />
+            <span className="text-sm">Icono</span>
+          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>

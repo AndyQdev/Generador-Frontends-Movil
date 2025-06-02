@@ -26,6 +26,7 @@ import TextAreaTools from '../elements/TextAreaTools'
 import ImagenTools from '../elements/ImagenTools'
 import SearchTools from '../elements/SearchTools'
 import CalendarTools from '../elements/CalendarTools'
+import IconTools from '../elements/Icons'
 
 export default function ToolsSection() {
   const [isHerramientaOpen, setIsHerramientaOpen] = useState(true)
@@ -246,6 +247,13 @@ export default function ToolsSection() {
               />
               <div className="h-96"></div>
             </div>
+          )}
+          {selectedComponent.type === 'icon' && project && (
+            <IconTools
+              component={selectedComponent}
+              setComponent={(updated) => { setSelectedComponent(updated) }}
+              project={project}
+            />
           )}
         </div>
       </CollapsibleContent>

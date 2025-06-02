@@ -23,7 +23,6 @@ const ProjectPage = (): JSX.Element => {
   const navigate = useNavigate()
   const [openModal, setOpenModal] = useState(false)
   const { allResource: projects, mutate } = useGetAllResource<Project>({ endpoint: ENDPOINTS.PROJECTS })
-
   return (
     <section className='grid gap-0 w-full'>
       <div className="inline-flex items-center flex-wrap gap-2">

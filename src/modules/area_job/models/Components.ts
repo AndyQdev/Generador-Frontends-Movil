@@ -21,6 +21,20 @@ export interface ComponentStyle {
     color?: string // Hex color
   }
 }
+export interface DataTableComponent extends BaseComponent {
+  type: 'datatable'
+  headers: string[] // Ej: ['Id', 'Nombre', 'Descripción']
+  rows: string[][] // Ej: [['1', 'Proyecto X', 'Descripción...'], ...]
+  backgroundColor?: string
+}
+export interface IconComponent extends BaseComponent {
+  type: 'icon'
+  icon: string
+  color?: string
+  size?: number
+  style?: ComponentStyle
+}
+
 export interface CalendarComponent extends BaseComponent {
   type: 'calendar'
   selectedDate?: string // formato YYYY-MM-DD
@@ -130,12 +144,6 @@ export interface DialogComponent extends BaseComponent {
   }>
 }
 
-export interface DataTableComponent extends BaseComponent {
-  type: 'datatable'
-  headers: string[] // Ej: ['Id', 'Nombre', 'Descripción']
-  rows: string[][] // Ej: [['1', 'Proyecto X', 'Descripción...'], ...]
-  backgroundColor?: string
-}
 export interface ListarComponent extends Omit<BaseComponent, 'label'> {
   type: 'listar'
   button: ButtonComponent
