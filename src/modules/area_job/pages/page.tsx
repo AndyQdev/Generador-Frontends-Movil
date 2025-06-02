@@ -14,7 +14,7 @@ import Canvas from './Canvas'
 import { useParams } from 'react-router-dom'
 import { connectSocket, getSocket } from '@/lib/socket'
 import throttle from 'lodash.throttle'
-import { type CardComponent, type BottomNavigationBarComponent, type ButtonComponent, type CheckListComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent, type TextAreaComponent, type ImagenComponent, type CalendarComponent } from '../models/Components'
+import { type CardComponent, type BottomNavigationBarComponent, type ButtonComponent, type CheckListComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent, type TextAreaComponent, type ImagenComponent, type CalendarComponent, type IconComponent } from '../models/Components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useProjectUsers } from '@/context/ProjectUsersContext'
@@ -40,6 +40,7 @@ export type ComponentItem =
   | TextAreaComponent
   | ImagenComponent
   | CalendarComponent
+  | IconComponent
 
 interface Page {
   id: string
@@ -631,6 +632,18 @@ export default function Editor() {
                 color: '#111827'
               }
             }
+          }
+        case 'icon':
+          return {
+            id: Date.now().toString(),
+            type: 'icon',
+            icon: 'star', // ícono por defecto
+            x: xPercent,
+            y: yPercent,
+            width: (48 / containerRect.width) * 100, // 48 px convertidos a %
+            height: (48 / containerRect.height) * 100, // 48 px convertidos a %
+            color: '#2563eb', // color de trazo inicial
+            size: 24 // tamaño interno si tu renderer lo usa
           }
         case 'calendar':
           return {

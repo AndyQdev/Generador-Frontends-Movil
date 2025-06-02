@@ -21,6 +21,7 @@ import TextArea from './components/TextArea'
 import Imagen from './components/Imagen'
 import Calendar from './components/Calendar'
 import Search from './components/Search'
+import Icon from './components/Icon'
 
 interface PageFrameProps {
   page: Page // Página que se está renderizando
@@ -320,6 +321,8 @@ export default function PageFrame({
                   return <Calendar comp={comp} />
                 case 'search':
                   return <Search comp={comp} />
+                case 'icon':
+                  return <Icon comp={comp} />
                 default:
                   return <div>Componente no soportado</div>
               }
