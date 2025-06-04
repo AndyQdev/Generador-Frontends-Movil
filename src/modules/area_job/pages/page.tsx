@@ -3,7 +3,7 @@ import { useComponentContext } from '@/context/ComponentContext'
 import { useHeader } from '@/hooks'
 import { PrivateRoutes } from '@/models/routes.model'
 import { API_BASEURL, ENDPOINTS } from '@/utils'
-import { useCreateResource, useGetResource, useUpdateResource } from '@/hooks/useApiResource'
+import { useGetResource, useUpdateResource } from '@/hooks/useApiResource'
 import { type UpdateProject, type Project } from '@/modules/projects/models/project.model'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -14,7 +14,7 @@ import Canvas from './Canvas'
 import { useParams } from 'react-router-dom'
 import { connectSocket, getSocket } from '@/lib/socket'
 import throttle from 'lodash.throttle'
-import { BottomNavigationBarComponent, type ButtonComponent, type ChecklistComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent } from '../models/Components'
+import { type BottomNavigationBarComponent, type ButtonComponent, type ChecklistComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent } from '../models/Components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useProjectUsers } from '@/context/ProjectUsersContext'
@@ -35,7 +35,6 @@ export type ComponentItem =
   | HeaderComponent
   | BottomNavigationBarComponent
 
-
 interface Page {
   id: string
   name: string
@@ -43,11 +42,6 @@ interface Page {
   background_color?: string
   grid_enabled?: boolean
   device_mode?: string
-  components: ComponentItem[]
-}
-interface CreatePage {
-  name: string
-  background_color?: string
   components: ComponentItem[]
 }
 
@@ -68,9 +62,6 @@ export default function Editor() {
     endpoint: areaId && areaId !== ':areaId' ? ENDPOINTS.PROJECTS : ENDPOINTS.ULTIMO_PROJECT, // si no es valido, no busca nada
     id: areaId && areaId !== ':areaId' ? areaId : ''
   })
-  const { createResource: createPage } = useCreateResource<CreatePage>({
-    endpoint: ENDPOINTS.PROJECTS + '/' + activeProject?.id + '/pages'
-  })
   const [pages, setPages] = useState<Page[]>([
     { id: '1', name: 'Página 1', components: [] }
   ])
@@ -79,7 +70,6 @@ export default function Editor() {
   const prevPagesLen = useRef(0)
   const [openDlg, setOpenDlg] = useState(false)
   const [newName, setNewName] = useState('')
-  const [newBg, setNewBg] = useState('#ffffff')
   const [creating, setCreating] = useState(false)
   const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
@@ -89,8 +79,8 @@ export default function Editor() {
   const [loadingMsg, setLoadingMsg] = useState('') // dots animados
   const [genCode, setGenCode] = useState<string | null>(null)
   const dotsRef = useRef<NodeJS.Timeout | null>(null)
-  const { users, setUsers } = useProjectUsers()
-  const [usersInProject, setUsersInProject] = useState<User[]>([])
+  const { setUsers } = useProjectUsers()
+  const [, setUsersInProject] = useState<User[]>([])
 
   useEffect(() => {
     if (!activeProject) return
@@ -139,13 +129,13 @@ export default function Editor() {
       if (token) {
         const socket = connectSocket(token, activeProject.id)
         console.log('🔌 Conectando socket...')
-        
+
         socket.on('usersInProject', (usersList: User[]) => {
           console.log('Usuarios en proyecto:', usersList)
           // Eliminar duplicados basados en el ID del usuario
           const uniqueUsers = Array.from(
             new Map(usersList.map(user => [user.id, user])).values()
-          ) as User[]
+          )
           setUsersInProject(uniqueUsers)
           setUsers(uniqueUsers)
         })
@@ -173,7 +163,7 @@ export default function Editor() {
           setUsersInProject(prev => prev.filter(u => u.id !== userId))
           setUsers(prev => prev.filter(u => u.id !== userId))
         })
-        
+
         socket.on('initial_state', (snapshot) => {
           console.log('📦 Estado inicial recibido:', snapshot)
           console.log('✅ Socket conectado correctamente:', socket.id)
@@ -345,14 +335,12 @@ export default function Editor() {
     throttledEmit(selectedComponent)
   }, [selectedComponent])
   console.log('🔵 Páginas actuales:', pages)
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string, scale: number) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string) => {
     const socket = getSocket()
 
     e.preventDefault()
     const type = e.dataTransfer.getData('component/type')
     const containerRect = e.currentTarget.getBoundingClientRect()
-    const x = (e.clientX - containerRect.left) / scale
-    const y = (e.clientY - containerRect.top) / scale
     const xPercent = ((e.clientX - containerRect.left) / containerRect.width) * 100
     const yPercent = ((e.clientY - containerRect.top) / containerRect.height) * 100
     const widthPercent = (200 / containerRect.width) * 100
@@ -417,7 +405,7 @@ export default function Editor() {
             type: 'header',
             x: 0,
             y: 3,
-            //width: (390 / containerRect.width) * 100, // ✅ en porcentaje
+            // width: (390 / containerRect.width) * 100, // ✅ en porcentaje
             width: 100,
             height: (56 / containerRect.height) * 100,
             title: 'UI-SKETCH',
@@ -445,14 +433,14 @@ export default function Editor() {
             id: Date.now().toString(),
             type: 'bottomNavigationBar',
             x: 0,
-            y: 100-heightPercent,
+            y: 100 - heightPercent,
             width: 100,
             height: heightPercent,
             backgroundColor: '#ffffff',
             activeColor: '#1976d2',
             inactiveColor: '#757575',
             borderRadious: 8,
-            locked:true,
+            locked: true,
             items: [
               { icon: 'home', label: 'Inicio', route: '', isActive: true },
               { icon: 'search', label: 'Buscar', route: '', isActive: false },

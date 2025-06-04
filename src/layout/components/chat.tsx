@@ -25,8 +25,8 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
   const resizerRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
   const { updatePage, selectedPage } = useComponentContext()
-  const [isThinking, setIsThinking] = useState(false)
-  const [pendingPage, setPendingPage] = useState<Page | null>(null)
+  const [, setIsThinking] = useState(false)
+  const [, setPendingPage] = useState<Page | null>(null)
   useEffect(() => {
     const resizer = resizerRef.current
     const sidebar = sidebarRef.current
@@ -133,6 +133,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       // Empieza a animar letra por letra
 
       animateTyping(animatedContent, aiMessage, () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (pageFromServer) updatePage(pageFromServer)
       }, 12, 3)
     } catch (error) {
@@ -220,12 +221,12 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                           .trim()
                       }
                     </SyntaxHighlighter>
-                  )
+                    )
                   : (
                     <p className={index === messages.length - 1 && msg.content.length < 10 ? 'typing-cursor' : ''}>
                       {msg.content}
                     </p>
-                  )}
+                    )}
               </div>
             </CardContent>
           </Card>
@@ -235,11 +236,11 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       <div className="border-t p-4 flex gap-2">
         <Input
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => { setInput(e.target.value) }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault(); // evita que haga un salto de línea si es textarea, o que el form haga submit
-              handleSend();
+              e.preventDefault() // evita que haga un salto de línea si es textarea, o que el form haga submit
+              void handleSend()
             }
           }}
           placeholder="Describe tu interfaz Flutter..."
