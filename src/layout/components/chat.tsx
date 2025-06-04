@@ -10,6 +10,8 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { type Page } from '@/modules/projects/models/page.model'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { VisualizerBars } from './VisualizerBars'
+import { AudioWaveLive } from './AudioWaveLive'
 
 interface ChatSidebarProps {
   onClose: () => void
@@ -32,7 +34,11 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
   const [isThinking, setIsThinking] = useState(false)
   const [pendingPage, setPendingPage] = useState<Page | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
-
+  // ---- Grabación de audio ----------------------------
+  const [isRecording, setIsRecording] = useState(false)
+  const [recorder, setRecorder] = useState<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const [recordError, setRecordError] = useState<string | null>(null)
   useEffect(() => {
     const resizer = resizerRef.current
     const sidebar = sidebarRef.current
@@ -103,7 +109,131 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       }
     ])
   }
+  const handleSendPrompt = async (prompt: string) => {
+    if (!prompt || !selectedPage) return
 
+    const loadingMessage = {
+      role: 'ai',
+      content: '💡 Generando componente con IA...'
+    }
+    setMessages(prev => [...prev, loadingMessage])
+    setIsThinking(true)
+    startLoadingDots()
+    abortControllerRef.current = new AbortController()
+
+    try {
+      const body = { prompt, page_id: selectedPage.id }
+      const response = await fetch(`${API_BASEURL}/ia/component`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(body),
+        signal: abortControllerRef.current.signal
+      })
+
+      if (!response.ok) throw new Error('Error en la IA')
+
+      const data = await response.json()
+      const pageFromServer = data.page
+      const pretty = JSON.stringify(data.components ?? data.component ?? {}, null, 2)
+
+      setMessages(prev => prev.slice(0, -1))
+      stopLoadingDots()
+
+      const aiMsg = { role: 'ai', content: '' }
+      setMessages(prev => [...prev, aiMsg])
+
+      animateTyping(`✅ Componente generado:\n\`\`\`json\n${pretty}\n\`\`\``,
+        aiMsg,
+        () => pageFromServer && updatePage(pageFromServer),
+        8, 4)
+    } catch (error) {
+      setMessages(prev => prev.slice(0, -1))
+      setMessages(prev => [...prev, { role: 'ai', content: '⚠️ Hubo un error al generar el componente.' }])
+      stopLoadingDots()
+    } finally {
+      setIsThinking(false)
+    }
+  }
+
+  const sendAudioToIA = async () => {
+    const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+    const file = new File([blob], 'audio.webm', { type: 'audio/webm' })
+    const form = new FormData()
+    form.append('file', file)
+    form.append('page_id', String(selectedPage?.id ?? ''))
+    form.append('mode', 'component')
+
+    const transcribingMessage = { role: 'ai', content: '🎙️ Transcribiendo audio...' }
+    setMessages(prev => [...prev, transcribingMessage])
+    setIsThinking(true)
+    startLoadingDots()
+
+    try {
+      const res = await fetch(`${API_BASEURL}/ia/from-audio`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: form
+      })
+      if (!res.ok) throw new Error('Error transcribiendo audio')
+
+      const data = await res.json()
+      const prompt = data.prompt
+
+      setMessages(prev => [
+        ...prev.slice(0, -1), // Quita "transcribiendo..."
+        { role: 'user', content: prompt }
+      ])
+      stopLoadingDots()
+
+      await handleSendPrompt(prompt) // ⬅️ ENVÍA el prompt automáticamente
+    } catch (e) {
+      stopLoadingDots()
+      setMessages(prev => prev.slice(0, -1))
+      setMessages(prev => [...prev, { role: 'ai', content: '⚠️ Error procesando audio.' }])
+    } finally {
+      setIsThinking(false)
+      setRecorder(null)
+    }
+  }
+
+  const startRecording = async () => {
+    setRecordError(null)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const _rec = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+
+      _rec.ondataavailable = (e) => {
+        if (e.data.size) audioChunksRef.current.push(e.data)
+      }
+      _rec.onstop = () => {
+        stream.getTracks().forEach(t => { t.stop() }) // cerramos micrófono
+        sendAudioToIA() // ⬅️ aquí llamamos a la IA
+      }
+
+      audioChunksRef.current = []
+      _rec.start()
+      setRecorder(_rec)
+      setIsRecording(true)
+    } catch (e) {
+      setRecordError('No se pudo acceder al micrófono')
+    }
+  }
+
+  const cancelRecording = () => {
+    recorder?.stream.getTracks().forEach(t => { t.stop() })
+    recorder?.stop() // detiene pero NO envía
+    setIsRecording(false)
+    setRecorder(null)
+    audioChunksRef.current = []
+  }
+
+  const stopAndSendRecording = () => {
+    recorder?.stop() // activará onstop → sendAudioToIA
+    setIsRecording(false)
+  }
   const handleSend = async () => {
     if (!input.trim() || !selectedPage) return
 
@@ -177,10 +307,6 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
     } finally {
       setIsThinking(false)
     }
-  }
-
-  const handleSend2 = async () => {
-    
   }
 
   const animateTyping = (
@@ -259,7 +385,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                   <input
                     type="checkbox"
                     checked={isTestMode}
-                    onChange={(e) => setIsTestMode(e.target.checked)}
+                    onChange={(e) => { setIsTestMode(e.target.checked) }}
                     className="w-4 h-4"
                   />
                   <label>Activar modo prueba</label>
@@ -268,7 +394,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                   <>
                     <Textarea
                       value={testJson}
-                      onChange={(e) => setTestJson(e.target.value)}
+                      onChange={(e) => { setTestJson(e.target.value) }}
                       placeholder="Ingresa el JSON de prueba..."
                       className="h-[200px] font-mono text-sm"
                     />
@@ -330,36 +456,78 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
         ))}
       </div>
 
-      <div className="border-t p-4 flex gap-2">
-        <Input
-          value={input}
-          onChange={(e) => { setInput(e.target.value) }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              if (isTestMode) {
-                handleTestResponse()
-              } else {
-                handleSend()
-              }
-            }
-          }}
-          placeholder={isTestMode ? "Modo prueba activado..." : "Describe tu interfaz Flutter..."}
-          className="flex-1"
-          disabled={isTestMode}
-        />
-        {isThinking ? (
-          <Button variant="destructive" onClick={handleStop}>
-            <StopCircle className="w-4 h-4 mr-2" />
-            Detener
-          </Button>
-        ) : (
-          <Button 
-            onClick={isTestMode ? handleTestResponse : handleSend2}
-            disabled={isTestMode && !testJson.trim()}
+      <div className="border-t p-4 flex gap-2 items-center min-h-[60px]">
+        {!isRecording
+          ? (
+          <>
+            <Input
+              value={input}
+              onChange={(e) => { setInput(e.target.value) }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  void handleSend()
+                }
+              }}
+              placeholder={isTestMode ? 'Modo prueba activado...' : 'Describe tu interfaz Flutter...'}
+              className="flex-1"
+              disabled={isTestMode}
+            />
+            {isThinking
+              ? (
+              <Button variant="destructive" onClick={handleStop}>
+                <StopCircle className="w-4 h-4 mr-2" />
+                Detener
+              </Button>
+                )
+              : (
+              <Button
+                onClick={handleTestResponse}
+                disabled={isTestMode && !testJson.trim()}
+              >
+                {isTestMode ? 'Probar' : 'Enviar'}
+              </Button>
+                )}
+          </>
+            )
+          : (
+          <div className="flex-1 flex items-center justify-center gap-4">
+            <AudioWaveLive />
+          </div>
+            )}
+
+        {/* Micrófono */}
+        {!isRecording && !isThinking && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={startRecording}
+            title="Grabar audio"
           >
-            {isTestMode ? 'Probar' : 'Enviar'}
+            <i className="fa fa-microphone" />
           </Button>
+        )}
+
+        {/* Controles mientras graba */}
+        {isRecording && (
+          <>
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={cancelRecording}
+              title="Cancelar"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={stopAndSendRecording}
+              title="Detener y enviar"
+            >
+              <StopCircle className="w-4 h-4" />
+            </Button>
+          </>
         )}
       </div>
 
@@ -375,4 +543,3 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
 }
 
 export default ChatSidebar
-
