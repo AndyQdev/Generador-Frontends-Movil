@@ -6,24 +6,28 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 📥 Clonar repo
+        uses: actions/checkout@v3
+
+      - name: 📦 Instalar dependencias
+        run: npm install
+
+      - name: 🛠️ Construir el frontend
+        run: npm run build
+
       - name: 🔓 Configurar acceso SSH
         uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.SOFTWARESSH }}
 
-      - name: 📡 Conectarse al servidor y desplegar
+      - name: 🚚 Subir carpeta dist/ al servidor
         run: |
-          ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o StrictHostKeyChecking=no root@24.199.104.57 "
-            cd /root/projects/frontends/Generador-Frontends-Movil &&
-            git pull origin main &&
-            npm install &&
-            npm run build &&  # <--- directo, sin segundo plano
-            rm -rf /var/www/generador-frontends/* &&
-            cp -r dist/* /var/www/generador-frontends/ &&
-            chown -R www-data:www-data /var/www/generador-frontends &&
-            systemctl reload nginx
-          "
+          scp -o StrictHostKeyChecking=no -r dist/* root@24.199.104.57:/var/www/generador-frontends/
+
+      - name: 🔁 Recargar NGINX
+        run: |
+          ssh -o StrictHostKeyChecking=no root@24.199.104.57 "systemctl reload nginx"
