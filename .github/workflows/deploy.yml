@@ -18,6 +18,9 @@ jobs:
 
       - name: 🛠️ Construir el frontend
         run: npm run build
+        env:
+          VITE_API_URL: "https://backend-generator-apps.premiumshop.shop"
+          VITE_API_URL_SOCKET: "https://backend-generator-apps.premiumshop.shop"
 
       - name: 🔓 Configurar acceso SSH
         uses: webfactory/ssh-agent@v0.8.0
