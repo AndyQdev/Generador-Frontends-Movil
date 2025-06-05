@@ -17,16 +17,13 @@ jobs:
 
       - name: 📡 Conectarse al servidor y desplegar
         run: |
-          ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o StrictHostKeyChecking=no root@24.199.104.57 << 'ENDSSH'
+          ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o StrictHostKeyChecking=no root@24.199.104.57 "
             cd /root/projects/frontends/Generador-Frontends-Movil &&
             git pull origin main &&
             npm install &&
-            echo "🚀 Ejecutando build en segundo plano..."
-            nohup sh -c "
-              npm run build &&
-              rm -rf /var/www/generador-frontends/* &&
-              cp -r dist/* /var/www/generador-frontends/ &&
-              chown -R www-data:www-data /var/www/generador-frontends &&
-              systemctl reload nginx
-            " > /root/build_frontend.log 2>&1 &
-          ENDSSH
+            npm run build &&  # <--- directo, sin segundo plano
+            rm -rf /var/www/generador-frontends/* &&
+            cp -r dist/* /var/www/generador-frontends/ &&
+            chown -R www-data:www-data /var/www/generador-frontends &&
+            systemctl reload nginx
+          "
