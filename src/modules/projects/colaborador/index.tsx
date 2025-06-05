@@ -11,13 +11,10 @@ import { useState } from 'react'
 import { ENDPOINTS } from '@/utils'
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import UserFormDialog from './subUser-form'
-import { type User } from '../models/user.model'
+import { type User, type Colaborador } from '../models/user.model'
 import { useGetResource } from '@/hooks/useApiResource'
 import { Badge } from '@/components/ui/badge'
 import EditColaboradorForm from './edit-colaborador-form'
-import { type ApiResponse } from '@/models'
-import { type KeyedMutator } from 'swr'
-import { type Colaborador } from '../models/user.model'
 
 const ColaboradorPage = (): JSX.Element => {
   useHeader([
@@ -125,9 +122,9 @@ const ColaboradorPage = (): JSX.Element => {
             actions: {
               enable: true,
               items: [
-                { 
-                  label: 'Editar', 
-                  onClick: (row) => handleEdit(row) 
+                {
+                  label: 'Editar',
+                  onClick: (row) => { handleEdit({ ...row, id: String(row.id) }) }
                 }
               ]
             },
@@ -147,10 +144,10 @@ const ColaboradorPage = (): JSX.Element => {
       <AlertDialog open={openEditModal} onOpenChange={setOpenEditModal}>
         <AlertDialogContent>
           {selectedColaborador && (
-            <EditColaboradorForm 
-              colaborador={selectedColaborador} 
-              setOpenModal={setOpenEditModal} 
-              mutate={mutate} 
+            <EditColaboradorForm
+              colaborador={selectedColaborador}
+              setOpenModal={setOpenEditModal}
+              mutate={mutate}
             />
           )}
         </AlertDialogContent>

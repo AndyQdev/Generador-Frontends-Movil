@@ -190,7 +190,7 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
                                       onMouseDown={(e) => {
                                         e.preventDefault()
                                         e.stopPropagation()
-                                        toggleId(col.id)
+                                        toggleId(col.id.toString())
                                       }}
                                       className='cursor-pointer hover:bg-accent bg-white dark:bg-dark-bg-primary dark:hover:bg-accent'
                                     >

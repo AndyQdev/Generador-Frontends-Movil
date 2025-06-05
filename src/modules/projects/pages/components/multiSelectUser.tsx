@@ -30,7 +30,7 @@ export default function MultiSelectUser({ users, value, onChange }: Props) {
       {/* Etiquetas seleccionadas */}
       <div className="flex flex-wrap gap-2">
         {value.map(id => {
-          const user = users.find(u => u.id === id)
+          const user = users.find(u => String(u.id) === id)
           if (!user) return null
           return (
             <Badge key={id} variant="secondary" className="flex items-center gap-1">
@@ -72,13 +72,13 @@ export default function MultiSelectUser({ users, value, onChange }: Props) {
                     onMouseDown={(e) => {
                       e.preventDefault() // Evita que el input tome el foco
                       e.stopPropagation() // Evita que se cierre el popover sin ejecutar tu lógica
-                      handleToggle(user.id)
+                      handleToggle(String(user.id))
                     }}
                     >
                     <CheckCheckIcon
                         className={cn(
                           'mr-2 h-4 w-4',
-                          value.includes(user.id) ? 'opacity-100' : 'opacity-0'
+                          value.includes(String(user.id)) ? 'opacity-100' : 'opacity-0'
                         )}
                     />
                     {user.name}

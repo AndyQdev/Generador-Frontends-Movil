@@ -10,7 +10,6 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { type Page } from '@/modules/projects/models/page.model'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { VisualizerBars } from './VisualizerBars'
 import { AudioWaveLive } from './AudioWaveLive'
 
 interface ChatSidebarProps {
@@ -32,13 +31,13 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const { updatePage, selectedPage } = useComponentContext()
   const [isThinking, setIsThinking] = useState(false)
-  const [pendingPage, setPendingPage] = useState<Page | null>(null)
+  const [, setPendingPage] = useState<Page | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   // ---- Grabación de audio ----------------------------
   const [isRecording, setIsRecording] = useState(false)
   const [recorder, setRecorder] = useState<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
-  const [recordError, setRecordError] = useState<string | null>(null)
+  const [, setRecordError] = useState<string | null>(null)
   useEffect(() => {
     const resizer = resizerRef.current
     const sidebar = sidebarRef.current
@@ -147,6 +146,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
 
       animateTyping(`✅ Componente generado:\n\`\`\`json\n${pretty}\n\`\`\``,
         aiMsg,
+        // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression, @typescript-eslint/no-unsafe-argument
         () => pageFromServer && updatePage(pageFromServer),
         8, 4)
     } catch (error) {
@@ -188,6 +188,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       ])
       stopLoadingDots()
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await handleSendPrompt(prompt) // ⬅️ ENVÍA el prompt automáticamente
     } catch (e) {
       stopLoadingDots()
@@ -210,7 +211,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       }
       _rec.onstop = () => {
         stream.getTracks().forEach(t => { t.stop() }) // cerramos micrófono
-        sendAudioToIA() // ⬅️ aquí llamamos a la IA
+        void sendAudioToIA() // ⬅️ aquí llamamos a la IA
       }
 
       audioChunksRef.current = []
@@ -291,6 +292,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       // Empieza a animar letra por letra
 
       animateTyping(animatedContent, aiMessage, () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (pageFromServer) updatePage(pageFromServer)
       }, 8, 4)
     } catch (error) {
@@ -345,6 +347,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       setMessages((prev) => [...prev, aiMessage])
 
       animateTyping(animatedContent, aiMessage, () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (jsonData.page) updatePage(jsonData.page)
       }, 8, 4)
     } catch (error) {

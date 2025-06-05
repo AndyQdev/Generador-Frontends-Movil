@@ -336,7 +336,7 @@ export default function Editor() {
 
     throttledEmit(selectedComponent)
   }, [selectedComponent])
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string, scale: number) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string) => {
     const socket = getSocket()
 
     e.preventDefault()

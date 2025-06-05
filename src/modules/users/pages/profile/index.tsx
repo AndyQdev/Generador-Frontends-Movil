@@ -27,11 +27,11 @@ const ProfilePage = (): JSX.Element => {
   const userStorage = JSON.parse(localStorage.getItem('user') ?? '{}')
   console.log('ID del usuario del localStorage:', userStorage.id)
 
-  const { resource: user, mutate: mutateId } = useGetResource<User>({
+  const { resource: user } = useGetResource<User>({
     endpoint: ENDPOINTS.USER_DETAIL, // si no es valido, no busca nada
     id: userStorage.id
   })
-  //onsole.log('Datos del usuario!!!!!!!!!!!!!!!!!!:', user);
+  // onsole.log('Datos del usuario!!!!!!!!!!!!!!!!!!:', user);
   return (
     <section className="grid gap-4 lg:gap-6">
       <div className="flex items-center justify-between">
@@ -120,4 +120,4 @@ const ProfilePage = (): JSX.Element => {
   )
 }
 
-export default ProfilePage 
+export default ProfilePage
