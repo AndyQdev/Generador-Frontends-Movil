@@ -1,0 +1,29 @@
+name: 🚀 Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔓 Configurar acceso SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 📡 Conectarse al servidor y desplegar
+        run: |
+          ssh -o StrictHostKeyChecking=no root@24.199.104.57 "
+            cd /root/projects/frontends/Generador-Frontends-Movil &&
+            git pull origin main &&
+            npm install &&
+            npm run build &&
+            rm -rf /var/www/generador-frontends/* &&
+            cp -r dist/* /var/www/generador-frontends/ &&
+            chown -R www-data:www-data /var/www/generador-frontends &&
+            systemctl reload nginx
+          "
