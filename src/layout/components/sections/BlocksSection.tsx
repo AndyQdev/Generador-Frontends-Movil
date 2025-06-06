@@ -3,12 +3,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger
 } from '@/components/ui/collapsible'
-import {
-  ChevronRightIcon,
-  Blocks
-  , SquareMousePointerIcon
-} from 'lucide-react'
+import { ChevronRight, Blocks } from 'lucide-react'
 import { useState } from 'react'
+import clsx from 'clsx'
+import { BLOCKS } from '@/layout/utils/blocks-palette'
 
 export default function BlocksSection() {
   const [isBlocksOpen, setIsBlocksOpen] = useState(true)
@@ -20,44 +18,26 @@ export default function BlocksSection() {
           <div className="flex items-center gap-2 text-sm font-medium">
             <Blocks size={18} /> Bloques
           </div>
-          <ChevronRightIcon className="group-aria-expanded:rotate-90 transition-transform" />
+          <ChevronRight className="group-aria-expanded:rotate-90 transition-transform" />
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="space-y-3 py-4">
-          {/* Listar */}
-          <div
-            className="flex items-center gap-2 px-3 py-2 rounded border border-pink-500 bg-pink-50 text-pink-800 cursor-move"
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('component/type', 'listar')
-            }}
-          >
-            <SquareMousePointerIcon size={16} />
-            <span className="text-sm">CRUD</span>
-          </div>
-          {/* Header */}
-          <div
-            className="flex items-center gap-2 px-3 py-2 rounded border border-yellow-500 bg-yellow-50 text-yellow-800 cursor-move"
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('component/type', 'header')
-            }}
-          >
-            <SquareMousePointerIcon size={16} />
-            <span className="text-sm">Header</span>
-          </div>
-          {/* Login */}
-          <div
-            className="flex items-center gap-2 px-3 py-2 rounded border border-yellow-500 bg-yellow-50 text-yellow-800 cursor-move"
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('component/type', 'login')
-            }}
-          >
-            <SquareMousePointerIcon size={16} />
-            <span className="text-sm">Login</span>
-          </div>
+        <div className="grid grid-cols-3 gap-3 pt-4">
+          {BLOCKS.map(({ id, label, icon: Icon, color }) => (
+            <button
+              key={id}
+              draggable
+              onDragStart={(e) => { e.dataTransfer.setData('component/type', id) }}
+              className={clsx(
+                'flex flex-col items-center justify-center gap-1 p-2 rounded-lg border text-xs cursor-move font-medium',
+                `border-${color}-500 dark:bg-[#1e293b] bg-[#f1f5f9] text-${color}-800`,
+                'hover:scale-105 hover:shadow transition-transform'
+              )}
+            >
+              <Icon size={18} />
+              {label}
+            </button>
+          ))}
         </div>
       </CollapsibleContent>
     </Collapsible>

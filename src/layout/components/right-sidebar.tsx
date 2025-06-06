@@ -53,17 +53,19 @@ export default function RightSidebar() {
     <div className="relative">
       {/* Botón de colapso */}
       <div className="absolute top-4 -left-10 z-50">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => setIsCollapsed(!isCollapsed)}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => { setIsCollapsed(!isCollapsed) }}
           className="bg-background dark:bg-dark-background-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-l-md shadow-md"
         >
-          {isCollapsed ? (
+          {isCollapsed
+            ? (
             <ChevronLeft className="w-5 h-5 text-light-text-primary dark:text-dark-text-primary" />
-          ) : (
+              )
+            : (
             <ChevronRight className="w-5 h-5 text-light-text-primary dark:text-dark-text-primary" />
-          )}
+              )}
         </Button>
       </div>
 

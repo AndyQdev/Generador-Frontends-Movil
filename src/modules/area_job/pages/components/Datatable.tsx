@@ -11,7 +11,7 @@ export default function DataTable({ comp }: { comp: DataTableComponent }) {
       )}
       style={{ backgroundColor }}
     >
-      <table className="min-w-full text-xs">
+      <table className="min-w-full text-xs text-black">
         {/* Cabeceras */}
         <thead className="bg-gray-100 sticky top-0">
           <tr>
