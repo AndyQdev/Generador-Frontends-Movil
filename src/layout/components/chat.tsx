@@ -415,48 +415,54 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, index) => (
-          <Card
-            key={index}
-            className={
-              msg.role === 'user'
-                ? 'bg-white dark:bg-gray-800 dark:text-gray-100'
-                : 'bg-muted dark:bg-gray-700 dark:text-gray-200'
-            }
-          >
-            <CardContent className="p-4 whitespace-pre-wrap text-sm font-mono">
-              <strong>{msg.role === 'user' ? 'Tú:' : 'UI Sketch:'}</strong>
-              <div className="mt-2">
-                {isJSONMessage(msg.content)
-                  ? (
-                    <SyntaxHighlighter
-                      language="json"
-                      style={oneDark}
-                      wrapLongLines
-                      customStyle={{
-                        borderRadius: '0.5rem',
-                        fontSize: '0.75rem',
-                        padding: '1rem'
-                      }}
-                    >
-                      {
-                        msg.content
-                          .replace(/^✅ Componente generado:\n```json\n/, '')
-                          .replace(/```$/, '')
-                          .trim()
-                      }
-                    </SyntaxHighlighter>
-                    )
-                  : (
-                    <p className={index === messages.length - 1 && msg.content.length < 10 ? 'typing-cursor' : ''}>
-                      {msg.content}
-                    </p>
-                    )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex flex-col gap-4">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={msg.role === 'user' ? 'self-end' : 'self-start'}
+            >
+              <Card
+                className={
+                  msg.role === 'user'
+                    ? 'bg-white dark:bg-blue-500 dark:text-gray-100'
+                    : 'bg-muted dark:bg-gray-700 dark:text-gray-200'
+                }
+              >
+                <CardContent className="p-4 whitespace-pre-wrap text-sm font-mono">
+                  <strong>{msg.role === 'user' ? '' : 'UI Sketch:'}</strong>
+                  <div className="mt-2">
+                    {isJSONMessage(msg.content)
+                      ? (
+                        <SyntaxHighlighter
+                          language="json"
+                          style={oneDark}
+                          wrapLongLines
+                          customStyle={{
+                            borderRadius: '0.5rem',
+                            fontSize: '0.75rem',
+                            padding: '1rem'
+                          }}
+                        >
+                          {
+                            msg.content
+                              .replace(/^✅ Componente generado:\n```json\n/, '')
+                              .replace(/```$/, '')
+                              .trim()
+                          }
+                        </SyntaxHighlighter>
+                        )
+                      : (
+                        <p className={index === messages.length - 1 && msg.content.length < 10 ? 'typing-cursor' : ''}>
+                          {msg.content}
+                        </p>
+                        )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="border-t p-4 flex gap-2 items-center min-h-[60px]">

@@ -6,6 +6,7 @@ import Aside from './components/aside'
 import { Toaster } from '@/components/ui/sonner'
 import RightSidebar from './components/right-sidebar'
 import { useState } from 'react'
+import IAFloatChat from './IAFloatChat'
 
 const Layout = () => {
   const location = useLocation()
@@ -16,13 +17,13 @@ const Layout = () => {
     <div className="flex h-screen w-full bg-light-bg-primary dark:bg-dark-background-primary relative">
       {/* --- Aside con su propio contenedor --- */}
       <div className="relative z-40">
-        <Aside isChatOpen={isChatOpen} onToggleChat={() => setIsChatOpen(!isChatOpen)} />
+        <Aside isChatOpen={isChatOpen} onToggleChat={() => { setIsChatOpen(!isChatOpen) }} />
       </div>
 
       {/* --- ChatSidebar solo visible en área de trabajo --- */}
       {isCanvasRoute && isChatOpen && (
         <div className="relative z-30">
-          <ChatSidebar onClose={() => setIsChatOpen(false)} />
+          <ChatSidebar onClose={() => { setIsChatOpen(false) }} />
         </div>
       )}
 
@@ -43,6 +44,7 @@ const Layout = () => {
           <Toaster richColors />
         </div>
       </div>
+      <IAFloatChat />
     </div>
   )
 }
