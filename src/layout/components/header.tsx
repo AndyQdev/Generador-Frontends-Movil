@@ -12,7 +12,7 @@ import { ModeToggle } from '@/components/mode-toggle'
 import { useProjectUsers } from '@/context/ProjectUsersContext'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useGetResource } from '@/hooks/useApiResource'
+import { useGetResource, useGetAllResource } from '@/hooks/useApiResource'
 import { ENDPOINTS } from '@/utils'
 import { type Project } from '@/modules/projects/models/project.model'
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -39,7 +39,8 @@ const Header = () => {
   const [openAssignModal, setOpenAssignModal] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(false)
   const userStorage = JSON.parse(localStorage.getItem('user') ?? '{}')
-  const { resource: user, mutate } = useGetResource<UserType>({ endpoint: ENDPOINTS.USER, id: userStorage.id })
+  const { resource: user, mutate } = useGetResource<UserType>({ endpoint: ENDPOINTS.USER, id: String(userStorage.id) })
+  const { allResource: projects } = useGetAllResource<Project>({ endpoint: ENDPOINTS.PROJECTS })
 
   const { resource: activeProject } = useGetResource<Project>({
     endpoint: areaId && areaId !== ':areaId' ? ENDPOINTS.PROJECTS : ENDPOINTS.ULTIMO_PROJECT,
@@ -101,7 +102,29 @@ const Header = () => {
                   ? (
                     <div className="flex items-center sm:gap-2" key={index}>
                       <BreadcrumbItem>
-                        <Link to={item.path}>{item.label}</Link>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div>
+                                <Link 
+                                  to={item.path}
+                                  className={`${
+                                    (!projects || projects.length === 0) && item.path === PrivateRoutes.AREA 
+                                      ? 'opacity-50 cursor-not-allowed pointer-events-none' 
+                                      : ''
+                                  }`}
+                                >
+                                  {item.label}
+                                </Link>
+                              </div>
+                            </TooltipTrigger>
+                            {(!projects || projects.length === 0) && item.path === PrivateRoutes.AREA && (
+                              <TooltipContent>
+                                <p>Necesitas crear al menos un proyecto para acceder al Espacio de Trabajo</p>
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                        </TooltipProvider>
                       </BreadcrumbItem>
                       <BreadcrumbSeparator />
                     </div>

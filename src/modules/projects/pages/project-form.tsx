@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 // import { ENDPOINTS} from '@utils/index'
-import { AlertDialogCancel, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@components/ui/alert-dialog'
+import { AlertDialogCancel, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from '@components/ui/alert-dialog'
 import { type Dispatch, type SetStateAction } from 'react'
 import { type ApiResponse } from '@models/index'
 import { Popover, PopoverContent, PopoverTrigger } from '@radix-ui/react-popover'
@@ -23,6 +23,8 @@ import { type KeyedMutator } from 'swr'
 import { PrivateRoutes } from '@/models/routes.model'
 import { useNavigate } from 'react-router-dom'
 import { DEVICES } from '@/modules/area_job/utils/devices'
+import { useGetAllResource } from '@/hooks/useApiResource'
+import { type Project } from '../models/project.model'
 // import { useCreateResource } from '@/hooks/useApiResource'
 // import { CreateUser } from '../../models/user.model'
 
@@ -52,7 +54,8 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
   // const { allResource: allRoles } = useGetAllResource<Role>({ endpoint: ENDPOINTS.ROLE })
   // const { allResource: branches } = useGetAllResource<Branch>({ endpoint: ENDPOINTS.BRANCH })
   const userStorage = JSON.parse(localStorage.getItem('user') ?? '{}')
-  const { resource: user } = useGetResource<User>({ endpoint: ENDPOINTS.USER, id: userStorage.id })
+  const { resource: user } = useGetResource<User>({ endpoint: ENDPOINTS.USER, id: String(userStorage.id) })
+  const { allResource: projects } = useGetAllResource<Project>({ endpoint: ENDPOINTS.PROJECTS })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -116,6 +119,11 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto w-full flex flex-col gap-4 lg:gap-6">
           <AlertDialogHeader>
             <AlertDialogTitle>Crear Proyecto</AlertDialogTitle>
+            {(!projects || projects.length === 0) && (
+              <AlertDialogDescription>
+                Debes crear al menos un proyecto para continuar.
+              </AlertDialogDescription>
+            )}
           </AlertDialogHeader>
           <div className="grid gap-4 lg:gap-6">
             {/* Datos Personales */}

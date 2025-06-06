@@ -80,7 +80,7 @@ export default function Editor() {
   const [pageToDelete, setPageToDelete] = useState<string | null>(null)
   const { setUsers } = useProjectUsers()
   const [, setUsersInProject] = useState<User[]>([])
-  const { deleteResource } = useDeleteResource(ENDPOINTS.PROJECTS+'/pages/'+pageToDelete)
+  const { deleteResource } = useDeleteResource(ENDPOINTS.PROJECTS + '/pages/' + pageToDelete)
 
   // Estados para manejar el historial y el portapapeles
   const [history, setHistory] = useState<Page[][]>([pages])
@@ -845,9 +845,16 @@ export default function Editor() {
       if (historyIndex > 0) {
         isHistoryUpdate.current = true
         const newIndex = historyIndex - 1
-        setHistoryIndex(newIndex)
         const previousState = structuredClone(history[newIndex])
+        const socket = getSocket()
+  
+        setHistoryIndex(newIndex)
         setPages(previousState)
+  
+        if (socket) {
+          syncPagesDiff(lastPagesRef.current, previousState, activeProject?.id, socket)
+        }
+  
         lastPagesRef.current = previousState
         setTimeout(() => {
           isHistoryUpdate.current = false
@@ -855,7 +862,67 @@ export default function Editor() {
       }
     }
   }
+  
 
+  const syncPagesDiff = (
+    prevPages: Page[],
+    nextPages: Page[],
+    projectId: string | undefined,
+    socket: any
+  ) => {
+    const prevMap = new Map<string, { pageId: string; comp: ComponentItem }>()
+    const nextMap = new Map<string, { pageId: string; comp: ComponentItem }>()
+  
+    for (const page of prevPages) {
+      for (const comp of page.components) {
+        prevMap.set(comp.id, { pageId: page.id, comp })
+      }
+    }
+  
+    for (const page of nextPages) {
+      for (const comp of page.components) {
+        nextMap.set(comp.id, { pageId: page.id, comp })
+      }
+    }
+  
+    // Detectar eliminados (estaban antes, ya no están)
+    for (const [id, { pageId }] of prevMap) {
+      if (!nextMap.has(id)) {
+        socket.emit('component_deleted', {
+          project_id: projectId,
+          page_id: pageId,
+          component: { id }
+        })
+      }
+    }
+  
+    // Detectar agregados (no estaban antes)
+    for (const [id, { pageId, comp }] of nextMap) {
+      if (!prevMap.has(id)) {
+        socket.emit('component_created', {
+          project_id: projectId,
+          page_id: pageId,
+          component: comp
+        })
+      }
+    }
+  
+    // Detectar cambios en componentes existentes
+    for (const [id, { pageId, comp }] of nextMap) {
+      if (prevMap.has(id)) {
+        const prevComp = prevMap.get(id)!.comp
+        if (JSON.stringify(prevComp) !== JSON.stringify(comp)) {
+          socket.emit('component_props_changed', {
+            project_id: projectId,
+            page_id: pageId,
+            component: comp,
+            origin: socket.id
+          })
+        }
+      }
+    }
+  }
+  
   // Función para rehacer (Ctrl+Y)
   const handleRedo = (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'y') {
@@ -863,9 +930,16 @@ export default function Editor() {
       if (historyIndex < history.length - 1) {
         isHistoryUpdate.current = true
         const newIndex = historyIndex + 1
-        setHistoryIndex(newIndex)
         const nextState = structuredClone(history[newIndex])
+        const socket = getSocket()
+  
+        setHistoryIndex(newIndex)
         setPages(nextState)
+  
+        if (socket) {
+          syncPagesDiff(lastPagesRef.current, nextState, activeProject?.id, socket)
+        }
+  
         lastPagesRef.current = nextState
         setTimeout(() => {
           isHistoryUpdate.current = false
@@ -873,6 +947,8 @@ export default function Editor() {
       }
     }
   }
+  
+  
 
   // Función para copiar (Ctrl+C)
   const handleCopy = (e: KeyboardEvent) => {
@@ -904,6 +980,16 @@ export default function Editor() {
       updatedPages[currentPageIndex].components.push(newComponent)
       setPages(updatedPages)
       addToHistory(updatedPages)
+      const socket = getSocket()
+      // Emitir el evento de creación del componente al socket
+      if (socket) {
+        socket.emit('component_created', {
+          project_id: activeProject?.id,
+          page_id: pages[currentPageIndex].id,
+          component: newComponent
+        })
+      }
+
       toast.success('Componente pegado')
     }
   }

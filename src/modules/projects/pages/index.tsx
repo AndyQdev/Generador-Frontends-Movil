@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeftIcon, File, ListFilter, Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -7,7 +8,6 @@ import { PrivateRoutes } from '@/models/routes.model'
 
 import { useHeader } from '@/hooks'
 import { DataTable } from '@/components/ui/DataTable'
-import { useState } from 'react'
 import { useGetAllResource } from '@/hooks/useApiResource'
 import { type Project } from '../../projects/models/project.model'
 import { ENDPOINTS } from '@/utils'
@@ -28,6 +28,13 @@ const ProjectPage = (): JSX.Element => {
   const [openEditModal, setOpenEditModal] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const { allResource: projects, mutate } = useGetAllResource<Project>({ endpoint: ENDPOINTS.PROJECTS })
+
+  useEffect(() => {
+    // Si no hay proyectos, mostrar el modal de creación
+    if (projects && projects.length === 0) {
+      setOpenModal(true)
+    }
+  }, [projects])
 
   const handleEdit = (project: Project) => {
     setSelectedProject(project)

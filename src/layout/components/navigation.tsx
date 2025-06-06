@@ -17,6 +17,7 @@ import { ScrollArea } from '@radix-ui/react-scroll-area'
 import { type Project } from '@/modules/projects/models/project.model'
 import { useGetAllResource } from '@/hooks/useApiResource'
 import { groupProjectsByDate } from '@/utils/groupProjectsByDate'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 function Navigation() {
   const {
@@ -45,14 +46,41 @@ function Navigation() {
     }
   }, [location.pathname])
   const [isUsuariosOpen, setIsUsuariosOpen] = useState(false)
+
+  if (status === authStatus.loading) {
+    return <div className="grid place-content-center place-items-center w-full py-2"><Loading /></div>
+  }
+
   return (
     <nav className="flex flex-col h-full w-full overflow-hidden justify-between">
       <div className="flex-1 overflow-y-auto">
         <section className='flex flex-col w-full gap-1 items-start p-4 overflow-y-auto relative overflow-x-hidden'>
-          <Link to={PrivateRoutes.AREA} className={`${selectedMenu === PrivateRoutes.AREA ? 'text-light-text-primary dark:text-dark-text-primary hover:bg-light-border dark:bg-dark-border font-semibold' : 'text-light-text-secondary dark:text-dark-text-secondary'} h-10 flex items-center gap-3 rounded-md py-2 transition-all w-full hover:bg-light-border hover:dark:bg-dark-border text-base font-normal`}>
-            <PenTool width={22} height={22} />
-            <span className={isContract ? 'hidden' : ''}>Espacio De Trabajo</span>
-          </Link>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Link 
+                    to={PrivateRoutes.AREA} 
+                    className={`${
+                      selectedMenu === PrivateRoutes.AREA 
+                        ? 'text-light-text-primary dark:text-dark-text-primary hover:bg-light-border dark:bg-dark-border font-semibold' 
+                        : 'text-light-text-secondary dark:text-dark-text-secondary'
+                    } h-10 flex items-center gap-3 rounded-md py-2 transition-all w-full hover:bg-light-border hover:dark:bg-dark-border text-base font-normal ${
+                      (!projects || projects.length === 0) ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+                    }`}
+                  >
+                    <PenTool width={22} height={22} />
+                    <span className={isContract ? 'hidden' : ''}>Espacio De Trabajo</span>
+                  </Link>
+                </div>
+              </TooltipTrigger>
+              {(!projects || projects.length === 0) && (
+                <TooltipContent>
+                  <p>Necesitas crear al menos un proyecto para acceder al Espacio de Trabajo</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           {status === authStatus.authenticated
             ? MenuSideBar.map((item: MenuHeaderRoute, index) => {
               const user = JSON.parse(localStorage.getItem('user') ?? '{}')
