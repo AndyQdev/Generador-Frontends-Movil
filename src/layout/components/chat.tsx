@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { MessageSquare, X, StopCircle, TestTube } from 'lucide-react'
+import { MessageSquare, X, StopCircle, TestTube, SendHorizonal } from 'lucide-react'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import { useComponentContext } from '@/context/ComponentContext'
 import { API_BASEURL } from '@/utils'
@@ -494,7 +494,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                 onClick={handleTestResponse}
                 disabled={isTestMode && !testJson.trim()}
               >
-                {isTestMode ? 'Probar' : 'Enviar'}
+                <SendHorizonal className="h-5 w-5" />
               </Button>
                 )}
           </>
