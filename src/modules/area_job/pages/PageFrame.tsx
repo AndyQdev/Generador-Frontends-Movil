@@ -233,6 +233,7 @@ export default function PageFrame({
                 width: toPx(comp.width, device.width),
                 height: toPx(comp.height, device.height)
               }}
+
               position={{
                 x: toPx(comp.x, device.width),
                 y: toPx(comp.y, device.height)
