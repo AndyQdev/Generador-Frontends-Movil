@@ -34,13 +34,13 @@ const formSchema = z.object({
     .default([])
 })
 
-interface EditProjectFormProps {
+interface IEditProjectFormProps {
   project: Project
   setOpenModal?: Dispatch<SetStateAction<boolean>>
   mutate: KeyedMutator<ApiResponse<Project[]>>
 }
 
-const EditProjectForm = ({ project, setOpenModal, mutate }: EditProjectFormProps) => {
+const EditProjectForm = ({ project, setOpenModal, mutate }: IEditProjectFormProps) => {
   const userStorage = JSON.parse(localStorage.getItem('user') ?? '{}')
   const { resource: user } = useGetResource<User>({ endpoint: ENDPOINTS.USER, id: userStorage.id })
   const { resource: projectColaboradores } = useGetResource<User[]>({ 

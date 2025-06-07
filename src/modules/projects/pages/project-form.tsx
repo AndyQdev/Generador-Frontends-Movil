@@ -46,7 +46,7 @@ const formSchema = z.object({
 
 interface IUserFormProps {
   setOpenModal?: Dispatch<SetStateAction<boolean>>
-  mutate: KeyedMutator<ApiResponse>
+  mutate: KeyedMutator<ApiResponse<Project[]>>
 }
 
 const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
@@ -198,7 +198,7 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
                                       onMouseDown={(e) => {
                                         e.preventDefault()
                                         e.stopPropagation()
-                                        toggleId(col.id)
+                                        toggleId(col.id.toString())
                                       }}
                                       className='cursor-pointer hover:bg-accent bg-white dark:bg-dark-bg-primary dark:hover:bg-accent'
                                     >

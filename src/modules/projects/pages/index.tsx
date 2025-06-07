@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeftIcon, File, ListFilter, Plus } from 'lucide-react'
+import { ChevronLeftIcon, File, ListFilter, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,14 @@ import { Badge } from '@/components/ui/badge'
 import EditProjectForm from './edit-project-form'
 import { type ApiResponse } from '@/models'
 import { type KeyedMutator } from 'swr'
+import DeleteProjectForm from './delete-project-form'
+
+// Definimos el tipo para las acciones de la tabla
+interface TableAction {
+  label: string
+  onClick: (row: Project) => void
+  icon?: JSX.Element
+}
 
 const ProjectPage = (): JSX.Element => {
   useHeader([
@@ -26,8 +34,12 @@ const ProjectPage = (): JSX.Element => {
   const navigate = useNavigate()
   const [openModal, setOpenModal] = useState(false)
   const [openEditModal, setOpenEditModal] = useState(false)
+  const [openDeleteModal, setOpenDeleteModal] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const { allResource: projects, mutate } = useGetAllResource<Project>({ endpoint: ENDPOINTS.PROJECTS })
+
+  // Tipamos el mutate correctamente
+  const typedMutate = mutate as KeyedMutator<ApiResponse<Project[]>>
 
   useEffect(() => {
     // Si no hay proyectos, mostrar el modal de creación
@@ -36,10 +48,32 @@ const ProjectPage = (): JSX.Element => {
     }
   }, [projects])
 
-  const handleEdit = (project: Project) => {
-    setSelectedProject(project)
+  const handleEdit = (row: Project) => {
+    setSelectedProject(row)
     setOpenEditModal(true)
   }
+
+  const handleDelete = (row: Project) => {
+    setSelectedProject(row)
+    setOpenDeleteModal(true)
+  }
+
+  // Definimos las acciones de la tabla
+  const tableActions: TableAction[] = [
+    { 
+      label: 'Editar', 
+      onClick: (row) => handleEdit(row) 
+    },
+    { 
+      label: 'Ver Proyecto', 
+      onClick: (row) => navigate(`/area-trabajo/${row.id}`) 
+    },
+    {
+      label: 'Eliminar',
+      onClick: (row) => handleDelete(row),
+      icon: <Trash2 className="h-4 w-4 text-red-500" />
+    }
+  ]
 
   return (
     <section className='grid gap-0 w-full'>
@@ -74,7 +108,7 @@ const ProjectPage = (): JSX.Element => {
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
-            <UserFormDialog mutate={mutate} setOpenModal={setOpenModal} />
+            <UserFormDialog mutate={typedMutate} setOpenModal={setOpenModal} />
           </AlertDialogContent>
         </AlertDialog>
       </div>
@@ -146,16 +180,7 @@ const ProjectPage = (): JSX.Element => {
             },
             actions: {
               enable: true,
-              items: [
-                { 
-                  label: 'Editar', 
-                  onClick: (row) => handleEdit(row) 
-                },
-                { 
-                  label: 'Ver Proyecto', 
-                  onClick: (row) => navigate(`/area-trabajo/${row.id}`) 
-                }
-              ]
+              items: tableActions
             },
             hiding: {
               enableHiding: true,
@@ -176,7 +201,20 @@ const ProjectPage = (): JSX.Element => {
             <EditProjectForm 
               project={selectedProject} 
               setOpenModal={setOpenEditModal} 
-              mutate={mutate as KeyedMutator<ApiResponse<Project[]>>} 
+              mutate={typedMutate} 
+            />
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={openDeleteModal} onOpenChange={setOpenDeleteModal}>
+        <AlertDialogContent>
+          {selectedProject && (
+            <DeleteProjectForm 
+              projectName={selectedProject.name}
+              projectId={selectedProject.id.toString()}
+              setOpenModal={setOpenDeleteModal}
+              mutate={typedMutate}
             />
           )}
         </AlertDialogContent>
