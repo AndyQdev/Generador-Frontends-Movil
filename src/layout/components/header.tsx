@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useGetResource, useGetAllResource } from '@/hooks/useApiResource'
 import { ENDPOINTS } from '@/utils'
 import { type Project } from '@/modules/projects/models/project.model'
-import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { AlertDialog, AlertDialogContent } from '@/components/ui/alert-dialog'
 import { useState } from 'react'
 import UserFormDialog from '@/modules/projects/colaborador/subUser-form'
 import { type User as UserType } from '@/modules/projects/models/user.model'
@@ -39,8 +39,8 @@ const Header = () => {
   const [openAssignModal, setOpenAssignModal] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(false)
   const userStorage = JSON.parse(localStorage.getItem('user') ?? '{}')
-  const { resource: user, mutate } = useGetResource<UserType>({ endpoint: ENDPOINTS.USER, id: String(userStorage.id) })
   const { allResource: projects } = useGetAllResource<Project>({ endpoint: ENDPOINTS.PROJECTS })
+  const { mutate } = useGetResource<UserType>({ endpoint: ENDPOINTS.USER, id: userStorage.id })
 
   const { resource: activeProject } = useGetResource<Project>({
     endpoint: areaId && areaId !== ':areaId' ? ENDPOINTS.PROJECTS : ENDPOINTS.ULTIMO_PROJECT,
@@ -128,12 +128,12 @@ const Header = () => {
                       </BreadcrumbItem>
                       <BreadcrumbSeparator />
                     </div>
-                  )
+                    )
                   : (
                     <BreadcrumbItem key={index}>
                       <BreadcrumbPage className="text-light-primary font-semibold">{item.label}</BreadcrumbPage>
                     </BreadcrumbItem>
-                  )
+                    )
               ))}
             </BreadcrumbList>
           </Breadcrumb>
@@ -150,8 +150,9 @@ const Header = () => {
       </div>
       <div className="flex items-center gap-2">
         <TooltipProvider>
-          {users && users.length > 0 ? (
-            users.map((user) => (
+          {users && users.length > 0
+            ? (
+                users.map((user) => (
               <Tooltip key={user.id}>
                 <TooltipTrigger asChild>
                   <Avatar className="h-8 w-8 border-2 border-primary dark:border-white transition-all duration-300 hover:scale-110 hover:rotate-12 hover:shadow-lg hover:shadow-primary/20 dark:hover:shadow-white/20">
@@ -164,10 +165,11 @@ const Header = () => {
                   <p className="font-medium">{user.name}</p>
                 </TooltipContent>
               </Tooltip>
-            ))
-          ) : (
+                ))
+              )
+            : (
             <div className="text-sm text-muted-foreground">No hay usuarios conectados</div>
-          )}
+              )}
         </TooltipProvider>
       </div>
       <ModeToggle />
@@ -202,10 +204,10 @@ const Header = () => {
 
       <AlertDialog open={openAssignModal} onOpenChange={setOpenAssignModal}>
         <AlertDialogContent>
-          <AssignColaboradorForm 
-            setOpenModal={setOpenAssignModal} 
-            mutate={mutate} 
-            projectId={activeProject?.id.toString() ?? ''} 
+          <AssignColaboradorForm
+            setOpenModal={setOpenAssignModal}
+            mutate={mutate}
+            projectId={activeProject?.id.toString() ?? ''}
           />
         </AlertDialogContent>
       </AlertDialog>

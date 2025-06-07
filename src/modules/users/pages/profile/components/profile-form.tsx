@@ -1,20 +1,33 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useUserDetail } from '@/hooks/userUserDetail'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
+import { useGetResource, useUpdateResource } from '@/hooks/useApiResource'
+import { ENDPOINTS } from '@/utils'
+import { type User } from '@/modules/projects/models/user.model'
 
 interface EditProfileFormProps {
   userId: string
 }
 
+interface ProfileFormData {
+  name: string
+  email: string
+  telefono: string
+}
+
 const EditProfileForm = ({ userId }: EditProfileFormProps): JSX.Element => {
   const navigate = useNavigate()
-  const { user, isLoading } = useUserDetail(userId)
-  const [formData, setFormData] = useState({
+  const userStorage = JSON.parse(localStorage.getItem('user') ?? '{}')
+  const { resource: user } = useGetResource<User>({
+    endpoint: ENDPOINTS.USER_DETAIL, // si no es valido, no busca nada
+    id: userStorage.id
+  })
+  const { updateResource, isMutating } = useUpdateResource<User>(ENDPOINTS.USER_DETAIL, userId)
+  const [formData, setFormData] = useState<ProfileFormData>({
     name: user?.name ?? '',
     email: user?.email ?? '',
     telefono: user?.telefono ?? ''
@@ -31,8 +44,11 @@ const EditProfileForm = ({ userId }: EditProfileFormProps): JSX.Element => {
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     try {
-      // Aquí iría la llamada a la API para actualizar el perfil
-      // await updateUserProfile(userId, formData)
+      const updatedUser: User = {
+        ...user!,
+        ...formData
+      }
+      await updateResource(updatedUser)
       toast.success('Perfil actualizado correctamente')
       navigate('/usuarios/perfil')
     } catch (error) {
@@ -41,9 +57,9 @@ const EditProfileForm = ({ userId }: EditProfileFormProps): JSX.Element => {
     }
   }
 
-  if (isLoading) {
-    return <div>Cargando...</div>
-  }
+  // if (isLoading) {
+  //   return <div>Cargando...</div>
+  // }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -95,8 +111,8 @@ const EditProfileForm = ({ userId }: EditProfileFormProps): JSX.Element => {
             >
               Cancelar
             </Button>
-            <Button type="submit">
-              Guardar Cambios
+            <Button type="submit" disabled={isMutating}>
+              {isMutating ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
           </div>
         </CardContent>
@@ -105,4 +121,4 @@ const EditProfileForm = ({ userId }: EditProfileFormProps): JSX.Element => {
   )
 }
 
-export default EditProfileForm 
+export default EditProfileForm

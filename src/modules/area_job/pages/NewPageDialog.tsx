@@ -9,7 +9,6 @@ import { toast } from 'sonner'
 import { API_BASEURL, ENDPOINTS } from '@/utils'
 import { type ButtonComponent } from '../models/Components'
 import { type ComponentItem } from './page'
-import { useCreateResource } from '@/hooks/useApiResource'
 
 interface NewPageDialogProps {
   open: boolean
@@ -44,7 +43,6 @@ export default function NewPageDialog({
   const [loadingMsg, setLoadingMsg] = useState('')
   const [genCode, setGenCode] = useState<string | null>(null)
   const dotsRef = useRef<NodeJS.Timeout | null>(null)
-
 
   const startDots = () => {
     let i = 0
@@ -132,7 +130,7 @@ export default function NewPageDialog({
 
         const { data: updatedPage } = await imageResponse.json()
         console.log('✅ Imagen procesada correctamente:', updatedPage)
-        
+
         // Actualizar la página creada con los componentes generados
         createdPage.components = updatedPage.components
       }
@@ -279,4 +277,4 @@ export default function NewPageDialog({
       </DialogContent>
     </Dialog>
   )
-} 
+}

@@ -1,0 +1,36 @@
+name: 🚀 Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Clonar repo
+        uses: actions/checkout@v3
+
+      - name: 📦 Instalar dependencias
+        run: npm install
+
+      - name: 🛠️ Construir el frontend
+        run: npm run build
+        env:
+          VITE_API_URL: "https://backend-generator-apps.premiumshop.shop"
+          VITE_API_URL_SOCKET: "https://backend-generator-apps.premiumshop.shop"
+
+      - name: 🔓 Configurar acceso SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SOFTWARESSH }}
+
+      - name: 🚚 Subir carpeta dist/ al servidor
+        run: |
+          scp -o StrictHostKeyChecking=no -r dist/* root@24.199.104.57:/var/www/generador-frontends/
+
+      - name: 🔁 Recargar NGINX
+        run: |
+          ssh -o StrictHostKeyChecking=no root@24.199.104.57 "systemctl reload nginx"

@@ -1,9 +1,5 @@
 import { type ApiBase } from '@/models/api-base'
 import { type Page } from './page.model'
-import { type User } from './user.model'
-// import { type Role } from '@/modules/auth/models/role.model'
-// import { type Branch } from '@/modules/company/models/branch.model'
-// import { type GENDER } from '@/utils'
 
 export interface Project extends ApiBase {
   name: string

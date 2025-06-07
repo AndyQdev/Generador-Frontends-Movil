@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
-import { Project } from '../types/Project';
+import React from 'react'
 
 const ProjectDetails: React.FC = () => {
-  const [project, setProject] = useState<Project | undefined>(undefined);
-
   return (
     <div>
       {/* Render your component content here */}
     </div>
-  );
-};
+  )
+}
 
-export default ProjectDetails; 
+export default ProjectDetails

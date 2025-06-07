@@ -2,23 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useComponentContext } from '@/context/ComponentContext'
 import { useHeader } from '@/hooks'
 import { PrivateRoutes } from '@/models/routes.model'
-import { API_BASEURL, ENDPOINTS, buildUrl } from '@/utils'
+import { API_BASEURL, ENDPOINTS } from '@/utils'
 import { useGetResource, useUpdateResource, useDeleteResource } from '@/hooks/useApiResource'
 import { type UpdateProject, type Project } from '@/modules/projects/models/project.model'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialogHeader } from '@/components/ui/alert-dialog'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Canvas from './Canvas'
 import { useParams } from 'react-router-dom'
 import { connectSocket, getSocket } from '@/lib/socket'
 import throttle from 'lodash.throttle'
 import { type CardComponent, type BottomNavigationBarComponent, type ButtonComponent, type CheckListComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent, type TextAreaComponent, type ImagenComponent, type CalendarComponent, type IconComponent } from '../models/Components'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useProjectUsers } from '@/context/ProjectUsersContext'
-import { deleteResource } from '@/services/crud.service'
 import NewPageDialog from './NewPageDialog'
 
 export type ComponentItem =
@@ -341,7 +336,7 @@ export default function Editor() {
 
     throttledEmit(selectedComponent)
   }, [selectedComponent])
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string, scale: number) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string) => {
     const socket = getSocket()
 
     e.preventDefault()
@@ -958,7 +953,7 @@ export default function Editor() {
       toast.success('Componente copiado al portapapeles', {
         style: {
           backgroundColor: '#FFD700', // amarillo dorado
-          color: '#000'               // texto negro para buen contraste
+          color: '#000' // texto negro para buen contraste
         },
         icon: '📋'
       })

@@ -25,7 +25,7 @@ export default function Icon({ comp }: Props) {
     <div
       className="w-full h-full flex items-center justify-center"
       style={{
-        backgroundColor: style?.backgroundColor ?? 'transparent',
+        backgroundColor: 'transparent',
         borderRadius: style?.borderRadius ?? 0,
         padding: 4
       }}

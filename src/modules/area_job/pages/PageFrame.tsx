@@ -331,7 +331,7 @@ export default function PageFrame({
 
             </div>
           </Rnd>
-        ))}
+      ))}
         {confirmDeleteRowIndex !== null && (
           <div className="absolute inset-0 z-[9999] flex items-center justify-center bg-black/40">
             <div className="bg-white p-6 rounded-lg shadow-lg w-[400px] space-y-4">
@@ -366,7 +366,7 @@ export default function PageFrame({
             </div>
           </div>
         )}
-        
+
       </div>
     </div>
   )

@@ -24,17 +24,17 @@ const Aside = ({ onToggleChat }: AsideProps) => {
       `}
     >
       <div className="absolute top-10 -right-10 bg-background dark:bg-dark-background-primary p-2 rounded-r-md shadow-md flex flex-col gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => setIsOpen(!isOpen)}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => { setIsOpen(!isOpen) }}
           className="hover:bg-transparent"
         >
           <Edit className="w-5 h-5 text-light-text-primary dark:text-dark-text-primary" />
         </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onToggleChat}
           className="hover:bg-transparent"
         >
