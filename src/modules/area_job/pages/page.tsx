@@ -54,6 +54,12 @@ interface User {
   id: string
   name: string
 }
+export interface UserSelection {
+  userId: string
+  userName: string
+  componentId: string
+  pageId: string
+}
 
 export default function Editor() {
   useHeader([
@@ -90,9 +96,16 @@ export default function Editor() {
     pageId: string
     imageUrl: string
   }>(null)
+  const [selections, setSelections] = useState<UserSelection[]>([])
+
   useEffect(() => {
     if (!activeProject) return
     setPages(activeProject.pages ?? [])
+    // Seleccionar automáticamente la primera página si existe
+    if (activeProject.pages && activeProject.pages.length > 0) {
+      setSelectedPage(activeProject.pages[0])
+      setCurrentPageIndex(0)
+    }
   }, [activeProject])
   // ➋  Observa cambios de longitud
   useEffect(() => {
@@ -132,164 +145,205 @@ export default function Editor() {
     return obj && typeof obj === 'object' && 'id' in obj && 'type' in obj
   }
   useEffect(() => {
-    if (activeProject?.id) {
-      const token = localStorage.getItem('token')
-      if (token) {
-        const socket = connectSocket(token, activeProject.id)
-        console.log('🔌 Conectando socket...')
+    if (!activeProject?.id) return
+    const token = localStorage.getItem('token')
+    if (!token) return
 
-        socket.on('usersInProject', (usersList: User[]) => {
-          console.log('Usuarios en proyecto:', usersList)
-          // Eliminar duplicados basados en el ID del usuario
-          const uniqueUsers = Array.from(
-            new Map(usersList.map(user => [user.id, user])).values()
-          )
-          setUsersInProject(uniqueUsers)
-          setUsers(uniqueUsers)
-        })
+    const projectId = activeProject.id
+    const socket = connectSocket(token, projectId)
+    console.log('🔌 Conectando socket al proyecto', projectId)
 
-        socket.on('user_joined', (user: User) => {
-          console.log('👋 Usuario conectado:', user)
-          setUsersInProject(prev => {
-            const exists = prev.some(u => u.id === user.id)
-            if (!exists) {
-              return [...prev, user]
-            }
-            return prev
-          })
-          setUsers(prev => {
-            const exists = prev.some(u => u.id === user.id)
-            if (!exists) {
-              return [...prev, user]
-            }
-            return prev
-          })
-        })
+    socket.on('usersInProject', (usersList: User[]) => {
+      console.log('Usuarios en proyecto:', usersList)
+      const uniqueUsers = Array.from(
+        new Map(usersList.map(user => [user.id, user])).values()
+      )
+      setUsersInProject(uniqueUsers)
+      setUsers(uniqueUsers)
+    })
 
-        socket.on('user_left', (userId: string) => {
-          console.log('👋 Usuario desconectado:', userId)
-          setUsersInProject(prev => prev.filter(u => u.id !== userId))
-          setUsers(prev => prev.filter(u => u.id !== userId))
-        })
-
-        socket.on('initial_state', (snapshot) => {
-          console.log('📦 Estado inicial recibido:', snapshot)
-          console.log('✅ Socket conectado correctamente:', socket.id)
-        })
-
-        socket.on('disconnect', (reason) => {
-          console.log('⚠️ Socket desconectado:', reason)
-          // Limpiar la lista de usuarios al desconectarse
-          setUsersInProject([])
-          setUsers([])
-        })
-
-        socket.on('connect_error', (error) => {
-          console.error('❌ Error de conexión Socket:', error)
-        })
-        socket.on('component_created', (data) => {
-          console.log('🟢 Nuevo componente:', data)
-          const { page_id: pageId, component } = data
-
-          setPages(prevPages => {
-            const pagesCopy = structuredClone(prevPages)
-            const page = pagesCopy.find(p => p.id === pageId)
-            if (page) {
-              if (isComponentItem(component)) { // Verifica que el componente sea válido
-                page.components.push(component)
-              } else {
-                console.error('El componente recibido no es válido:', component)
-              }
-            }
-            return pagesCopy
-          })
-        })
-
-        socket.on('component_updated', (data) => {
-          console.log('🟡 Componente actualizado:', data)
-          const { page_id: pageId, component } = data
-
-          setPages(prevPages => {
-            const pagesCopy = structuredClone(prevPages)
-            const page = pagesCopy.find(p => p.id === pageId)
-            if (page) {
-              const idx = page.components.findIndex(c => c.id === component.id)
-              if (idx !== -1) {
-                page.components[idx] = component
-              }
-            }
-            return pagesCopy
-          })
-        })
-
-        socket.on('component_deleted', (data) => {
-          console.log('🔴 Componente eliminado:', data)
-          const { page_id: pageId, component } = data
-
-          setPages(prevPages => {
-            const pagesCopy = structuredClone(prevPages)
-            const page = pagesCopy.find(p => p.id === pageId)
-            if (page) {
-              page.components = page.components.filter(c => c.id !== component.id)
-            }
-            return pagesCopy
-          })
-        })
-        socket.on('component_moving', ({ page_id: pageId, component, origin }) => {
-          if (origin === socket.id) return // ignora tu propio drag
-          setPages(pages => {
-            const next = structuredClone(pages)
-            const page = next.find(p => p.id === pageId)
-            if (!page) return pages
-            const idx = page.components.findIndex(c => c.id === component.id)
-            if (idx !== -1) {
-              page.components[idx].x = component.x
-              page.components[idx].y = component.y
-            }
-            return next
-          })
-        })
-
-        socket.on('component_resizing', ({ page_id: pageId, component, origin }) => {
-          if (origin === socket.id) return
-          setPages(pages => {
-            const next = structuredClone(pages)
-            const page = next.find(p => p.id === pageId)
-            if (!page) return pages
-            const idx = page.components.findIndex(c => c.id === component.id)
-            if (idx !== -1) {
-              Object.assign(page.components[idx], component)
-            }
-            return next
-          })
-        })
-        socket.on('component_props_changed', ({ page_id: pageId, component, origin }) => {
-          if (origin === socket.id) return // ignora tu propio eco
-
-          setPages(prev => {
-            const next = structuredClone(prev)
-            const page = next.find(p => p.id === pageId)
-            if (!page) return prev
-
-            const idx = page.components.findIndex(c => c.id === component.id)
-            if (idx !== -1) {
-              page.components[idx] = { ...page.components[idx], ...component }
-            }
-            return next
-          })
-        })
-        return () => {
-          socket.off('usersInProject')
-          socket.off('user_joined')
-          socket.off('user_left')
-          socket.off('initial_state')
-          socket.off('disconnect')
-          socket.off('connect_error')
-          socket.disconnect()
+    socket.on('user_joined', (user: User) => {
+      console.log('👋 Usuario conectado:', user)
+      setUsersInProject(prev => {
+        const exists = prev.some(u => u.id === user.id)
+        if (!exists) {
+          return [...prev, user]
         }
-      }
+        return prev
+      })
+      setUsers(prev => {
+        const exists = prev.some(u => u.id === user.id)
+        if (!exists) {
+          return [...prev, user]
+        }
+        return prev
+      })
+    })
+
+    socket.on('user_left', (userId: string) => {
+      console.log('👋 Usuario desconectado:', userId)
+      setUsersInProject(prev => prev.filter(u => u.id !== userId))
+      setSelections(sel => sel.filter(s => s.userId !== userId))
+      setUsers(prev => prev.filter(u => u.id !== userId))
+    })
+
+    socket.on('initial_state', (snapshot) => {
+      console.log('📦 Estado inicial recibido:', snapshot)
+      console.log('✅ Socket conectado correctamente:', socket.id)
+    })
+
+    socket.on('disconnect', (reason) => {
+      console.log('⚠️ Socket desconectado:', reason)
+      setUsersInProject([])
+      setUsers([])
+    })
+
+    socket.on('connect_error', (error) => {
+      console.error('❌ Error de conexión Socket:', error)
+    })
+
+    socket.on('component_created', (data) => {
+      console.log('🟢 Nuevo componente:', data)
+      const { page_id: pageId, component } = data
+
+      setPages(prevPages => {
+        const pagesCopy = structuredClone(prevPages)
+        const page = pagesCopy.find(p => p.id === pageId)
+        if (page) {
+          if (isComponentItem(component)) {
+            page.components.push(component)
+          } else {
+            console.error('El componente recibido no es válido:', component)
+          }
+        }
+        return pagesCopy
+      })
+    })
+
+    socket.on('component_updated', (data) => {
+      console.log('🟡 Componente actualizado:', data)
+      const { page_id: pageId, component } = data
+
+      setPages(prevPages => {
+        const pagesCopy = structuredClone(prevPages)
+        const page = pagesCopy.find(p => p.id === pageId)
+        if (page) {
+          const idx = page.components.findIndex(c => c.id === component.id)
+          if (idx !== -1) {
+            page.components[idx] = component
+          }
+        }
+        return pagesCopy
+      })
+    })
+
+    socket.on('component_deleted', (data) => {
+      console.log('🔴 Componente eliminado:', data)
+      const { page_id: pageId, component } = data
+
+      setPages(prevPages => {
+        const pagesCopy = structuredClone(prevPages)
+        const page = pagesCopy.find(p => p.id === pageId)
+        if (page) {
+          page.components = page.components.filter(c => c.id !== component.id)
+        }
+        return pagesCopy
+      })
+    })
+
+    socket.on('component_moving', ({ page_id: pageId, component, origin }) => {
+      if (origin === socket.id) return
+      setPages(pages => {
+        const next = structuredClone(pages)
+        const page = next.find(p => p.id === pageId)
+        if (!page) return pages
+        const idx = page.components.findIndex(c => c.id === component.id)
+        if (idx !== -1) {
+          page.components[idx].x = component.x
+          page.components[idx].y = component.y
+        }
+        return next
+      })
+    })
+
+    socket.on('component_resizing', ({ page_id: pageId, component, origin }) => {
+      if (origin === socket.id) return
+      setPages(pages => {
+        const next = structuredClone(pages)
+        const page = next.find(p => p.id === pageId)
+        if (!page) return pages
+        const idx = page.components.findIndex(c => c.id === component.id)
+        if (idx !== -1) {
+          Object.assign(page.components[idx], component)
+        }
+        return next
+      })
+    })
+
+    socket.on('component_props_changed', ({ page_id: pageId, component, origin }) => {
+      if (origin === socket.id) return
+      setPages(prev => {
+        const next = structuredClone(prev)
+        const page = next.find(p => p.id === pageId)
+        if (!page) return prev
+        const idx = page.components.findIndex(c => c.id === component.id)
+        if (idx !== -1) {
+          page.components[idx] = { ...page.components[idx], ...component }
+        }
+        return next
+      })
+    })
+
+    socket.on('component_selected', (data) => {
+      setSelections((prev) => {
+        const filtered = prev.filter(sel => sel.userId !== data.user_id)
+
+        // 👉 Si no hay selección (logout o limpieza), no agregues nada
+        if (!data.component_id) return filtered
+
+        // 👌 Caso normal: agregás la nueva selección
+        return [...filtered, {
+          userId: data.user_id,
+          userName: data.user_name,
+          componentId: data.component_id,
+          pageId: data.page_id
+        }]
+      })
+    })
+
+    // Agregar eventos para páginas
+    socket.on('page_created', (data) => {
+      console.log('🟢 Nueva página creada:', data)
+      const { page } = data
+      setPages(prevPages => [...prevPages, page])
+    })
+
+    socket.on('page_deleted', (data) => {
+      console.log('🔴 Página eliminada:', data)
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const { page_id } = data
+      setPages(prevPages => prevPages.filter(p => p.id !== page_id))
+    })
+
+    return () => {
+      const user = JSON.parse(localStorage.getItem('user') ?? '{}')
+      socket.emit('component_selected', {
+        project_id: projectId,
+        page_id: null,
+        component_id: null,
+        user_id: user.id,
+        user_name: user.name
+      })
+
+      socket.emit('leaveProject', projectId)
+      socket.disconnect()
+
+      setSelections([])
+      setSelectedComponent(null)
+      if (setSelectedPage) setSelectedPage(null)
+      console.log('🔌 Desconectado del proyecto', projectId)
     }
-  }, [activeProject?.id, setUsers])
+  }, [activeProject?.id, setUsers, setSelectedPage])
   const onSubmit = () => {
     toast.promise(updateProject(
       {
@@ -786,6 +840,13 @@ export default function Editor() {
         return updatedPages
       })
 
+      // Emitir evento de eliminación de página
+      const socket = getSocket()
+      socket?.emit('page_deleted', {
+        project_id: activeProject?.id,
+        page_id: pageToDelete
+      })
+
       // Actualizar el proyecto en el servidor
       if (activeProject) {
         await updateProject(
@@ -1112,6 +1173,7 @@ export default function Editor() {
         setOpenDlg={setOpenDlg}
         onDeletePage={handleDeletePage}
         activeLoadingImage={activeLoadingImage}
+        userSelections={selections}
       />
     </div>
   )

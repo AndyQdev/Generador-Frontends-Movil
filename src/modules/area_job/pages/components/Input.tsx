@@ -12,6 +12,7 @@ export default function Input({ comp }: Props) {
       style={{
         backgroundColor: comp.style?.backgroundColor ?? '#ffffff',
         borderRadius: comp.style?.borderRadius ?? 6,
+        border: comp.style?.border ?? '1px solid #e5e7eb',
         paddingTop: comp.style?.padding?.top ?? 6,
         paddingBottom: comp.style?.padding?.bottom ?? 6,
         paddingLeft: comp.style?.padding?.left ?? 10,

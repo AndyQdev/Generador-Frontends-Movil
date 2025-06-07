@@ -11,6 +11,7 @@ export default function Button({ comp }: Props) {
       style={{
         backgroundColor: comp.style?.backgroundColor ?? '#2563eb',
         borderRadius: comp.style?.borderRadius ?? 8,
+        border: comp.style?.border ?? '1px solid #e5e7eb',
         paddingTop: comp.style?.padding?.top ?? 8,
         paddingBottom: comp.style?.padding?.bottom ?? 8,
         paddingLeft: comp.style?.padding?.left ?? 12,

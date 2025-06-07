@@ -4,7 +4,7 @@ import { TransformWrapper, TransformComponent, type ReactZoomPanPinchRef } from 
 import PageFrame from './PageFrame' // tu frame con Rnd dentro
 import Toolbar from './Toolbar' // barra inferior
 import { type Page } from '@/modules/projects/models/page.model'
-import { type ComponentItem } from './page'
+import { type ComponentItem, type UserSelection } from './page'
 import { type Device, DEVICES } from '../utils/devices'
 
 interface CanvasProps {
@@ -30,6 +30,7 @@ interface CanvasProps {
     imageUrl: string
   }
   setActiveLoadingImage: (image: { pageId: string, imageUrl: string } | null) => void
+  userSelections: UserSelection[]
 }
 
 export default function Canvas({
@@ -47,7 +48,8 @@ export default function Canvas({
   currentProjectId,
   onDeletePage,
   activeLoadingImage,
-  setActiveLoadingImage
+  setActiveLoadingImage,
+  userSelections
 }: CanvasProps) {
   const [mode, setMode] = useState<'select' | 'hand'>('select')
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -249,6 +251,7 @@ export default function Canvas({
                           currentPageId={current?.id ?? ''} // Pasa el id de la página actual o una cadena vacía si es null
                           onDeletePage={onDeletePage}
                           activeLoadingImage={activeLoadingImage}
+                          userSelections={userSelections}
                         />
                     ))}
                   </div>

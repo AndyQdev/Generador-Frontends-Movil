@@ -13,10 +13,11 @@ export default function Search({ comp }: Props) {
         type="search"
         placeholder={comp.placeholder}
         defaultValue={comp.value}
-        className="w-full h-full border rounded pl-8 pr-2 py-1"
+        className="w-full h-full pl-8 pr-2 py-1"
         style={{
           backgroundColor: comp.style?.backgroundColor ?? '#ffffff',
           borderRadius: comp.style?.borderRadius ?? 6,
+          border: comp.style?.border ?? '1px solid #e5e7eb',
           fontSize: comp.style?.textStyle?.fontSize ?? 14,
           color: comp.style?.textStyle?.color ?? '#111827'
         }}
