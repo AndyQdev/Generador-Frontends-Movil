@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { API_BASEURL, ENDPOINTS } from '@/utils'
 import { type ButtonComponent } from '../models/Components'
 import { type ComponentItem } from './page'
+import { getSocket } from '@/lib/socket'
 
 interface NewPageDialogProps {
   open: boolean
@@ -88,7 +89,8 @@ export default function NewPageDialog({
         background_color: '#ffffff',
         grid_enabled: true,
         device_mode: 'mobile',
-        components: []
+        components: [],
+        order: pages.length + 1
       }
 
       console.log('📝 Creando página:', pageData)
@@ -158,6 +160,13 @@ export default function NewPageDialog({
         }
 
         onPageCreated(createdPage)
+
+        // Emitir evento de creación de página
+        const socket = getSocket()
+        socket?.emit('page_created', {
+          project_id: activeProjectId,
+          page: createdPage
+        })
 
         onOpenChange(false)
         setNewName('')

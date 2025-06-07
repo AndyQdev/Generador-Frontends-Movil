@@ -9,10 +9,11 @@ export default function Select({ comp }: Props) {
     <div className="w-full h-full flex flex-col justify-center px-2">
       {comp.label && <label className="text-xs text-black mb-1">{comp.label}</label>}
       <select
-        className="w-full h-full border rounded outline-none transition-all"
+        className="w-full h-full outline-none transition-all"
         style={{
           backgroundColor: comp.style?.backgroundColor ?? '#ffffff',
           borderRadius: comp.style?.borderRadius ?? 6,
+          border: comp.style?.border ?? '1px solid #e5e7eb',
           paddingTop: comp.style?.padding?.top ?? 6,
           paddingBottom: comp.style?.padding?.bottom ?? 6,
           paddingLeft: comp.style?.padding?.left ?? 10,

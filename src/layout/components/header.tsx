@@ -20,6 +20,7 @@ import { useState } from 'react'
 import UserFormDialog from '@/modules/projects/colaborador/subUser-form'
 import { type User as UserType } from '@/modules/projects/models/user.model'
 import AssignColaboradorForm from '@/modules/projects/colaborador/assign-colaborador-form'
+import { logout } from '@/lib/logout'
 
 const getInitials = (name: string): string => {
   return name
@@ -106,13 +107,12 @@ const Header = () => {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div>
-                                <Link 
+                                <Link
                                   to={item.path}
-                                  className={`${
-                                    (!projects || projects.length === 0) && item.path === PrivateRoutes.AREA 
-                                      ? 'opacity-50 cursor-not-allowed pointer-events-none' 
+                                  className={`${(!projects || projects.length === 0) && item.path === PrivateRoutes.AREA
+                                      ? 'opacity-50 cursor-not-allowed pointer-events-none'
                                       : ''
-                                  }`}
+                                    }`}
                                 >
                                   {item.label}
                                 </Link>
@@ -128,12 +128,12 @@ const Header = () => {
                       </BreadcrumbItem>
                       <BreadcrumbSeparator />
                     </div>
-                    )
+                  )
                   : (
                     <BreadcrumbItem key={index}>
                       <BreadcrumbPage className="text-light-primary font-semibold">{item.label}</BreadcrumbPage>
                     </BreadcrumbItem>
-                    )
+                  )
               ))}
             </BreadcrumbList>
           </Breadcrumb>
@@ -152,24 +152,24 @@ const Header = () => {
         <TooltipProvider>
           {users && users.length > 0
             ? (
-                users.map((user) => (
-              <Tooltip key={user.id}>
-                <TooltipTrigger asChild>
-                  <Avatar className="h-8 w-8 border-2 border-primary dark:border-white transition-all duration-300 hover:scale-110 hover:rotate-12 hover:shadow-lg hover:shadow-primary/20 dark:hover:shadow-white/20">
-                    <AvatarFallback className="bg-primary/10 text-primary dark:bg-white/10 dark:text-white font-medium transition-colors duration-300 hover:bg-primary/20 dark:hover:bg-white/20">
-                      {getInitials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                </TooltipTrigger>
-                <TooltipContent className="transition-all duration-300">
-                  <p className="font-medium">{user.name}</p>
-                </TooltipContent>
-              </Tooltip>
-                ))
-              )
+              users.map((user) => (
+                <Tooltip key={user.id}>
+                  <TooltipTrigger asChild>
+                    <Avatar className="h-8 w-8 border-2 border-primary dark:border-white transition-all duration-300 hover:scale-110 hover:rotate-12 hover:shadow-lg hover:shadow-primary/20 dark:hover:shadow-white/20">
+                      <AvatarFallback className="bg-primary/10 text-primary dark:bg-white/10 dark:text-white font-medium transition-colors duration-300 hover:bg-primary/20 dark:hover:bg-white/20">
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </TooltipTrigger>
+                  <TooltipContent className="transition-all duration-300">
+                    <p className="font-medium">{user.name}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))
+            )
             : (
-            <div className="text-sm text-muted-foreground">No hay usuarios conectados</div>
-              )}
+              <div className="text-sm text-muted-foreground">No hay usuarios conectados</div>
+            )}
         </TooltipProvider>
       </div>
       <ModeToggle />
@@ -228,11 +228,10 @@ const Header = () => {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className='cursor-pointer'
+            className="cursor-pointer"
             onClick={() => {
-              localStorage.removeItem('token')
-              localStorage.removeItem('user')
-              window.location.reload()
+              logout(activeProject?.id)        // ⬅️  limpia la selección
+              window.location.reload()               
             }}
           >
             <LogOut className="mr-2 h-4 w-4" />

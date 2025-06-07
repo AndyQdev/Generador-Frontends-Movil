@@ -124,7 +124,11 @@ export default function PageFrame({
       </div>
 
       <div ref={pageRef}
-        style={{ width: device.width, height: device.height }}
+        style={{
+          width: device.width,
+          height: device.height,
+          backgroundColor: page.background_color ?? '#ffffff'
+        }}
         className={cn(
           'relative shadow-lg border overflow-hidden bg-[#D9D9D9] rounded-3xl',
           selected ? 'ring-2 ring-blue-500' : 'border-gray-400'
@@ -193,7 +197,7 @@ export default function PageFrame({
           const other = userSelections.find(
             (s) => s.componentId === comp.id && s.pageId === page.id
           )
-          console.log('Componente:', comp.id, 'Seleccionado por:', other)
+          //console.log('Componente:', comp.id, 'Seleccionado por:', other)
           /* ──────────────────────────────────────────────────────────────────── */
 
           return (
@@ -226,6 +230,7 @@ export default function PageFrame({
                     user_id: user.id,
                     user_name: user.name
                   })
+                  //console.log('esto es usariooooooooooooooooooooooooo' +JSON.stringify(user))
                   socket?.emit('component_selected', {
                     project_id: currentProjectId,
                     page_id: page.id,
@@ -318,7 +323,7 @@ export default function PageFrame({
                 {other && (
                   <div className="absolute inset-0 ring-2 ring-pink-500 rounded pointer-events-none z-40">
                     <div className="absolute -top-6 left-0 bg-pink-500 text-white text-xs px-2 py-0.5 rounded shadow-md">
-                      {other.userName} está editando
+                      {other.userName}
                     </div>
                   </div>
                 )}

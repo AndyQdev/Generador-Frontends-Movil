@@ -13,7 +13,8 @@ const Routes = () => {
     <BaseRoutes>
       {/* Rutas públicas, pero si ya está autenticado ocultar dichas rutas */}
       {/* <Route path={PublicRoutes.LANDING} element={<LandingPage />} /> */}
-      <Route element={<ProtectedRoute redirectTo={PrivateRoutes.PROJECTS} />}>
+      {/* <Route element={<ProtectedRoute redirectTo={PrivateRoutes.PROJECTS} />}> */}
+      <Route element={<ProtectedRoute redirectTo={PrivateRoutes.AREA} />}>
         <Route path={PublicRoutes.LOGIN} element={<LoginPage/>} />
         {/* <Route path={PublicRoutes.REGISTER} element={<RegisterPage />} /> */}
       </Route>

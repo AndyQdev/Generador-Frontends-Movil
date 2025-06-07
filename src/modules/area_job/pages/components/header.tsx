@@ -1,8 +1,11 @@
 // components/preview/Header.tsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import Sidebar from './Sidebar'
 import { type HeaderComponent } from '../../models/Components'
+import { useProjectUsers } from '@/context/ProjectUsersContext'
+import { getSocket } from '@/lib/socket'
+import { toast } from 'sonner'
 
 interface Props {
   comp: HeaderComponent
@@ -13,6 +16,44 @@ interface Props {
 export default function Header({ comp, portalRoot }: Props) {
   const [open, setOpen] = useState(false)
   const color = comp.color ?? '#2563eb'
+  const { users } = useProjectUsers()
+  const socket = getSocket()
+
+  useEffect(() => {
+    if (!socket) return
+
+    socket.on('user_joined', (user) => {
+      toast.success(`${user.name} se ha unido al proyecto`, {
+        duration: 3000,
+        position: 'top-right',
+        style: {
+          background: '#4CAF50',
+          color: 'white',
+          border: 'none'
+        }
+      })
+    })
+
+    socket.on('user_left', (userId) => {
+      const user = users.find(u => u.id === userId)
+      if (user) {
+        toast.info(`${user.name} ha salido del proyecto`, {
+          duration: 3000,
+          position: 'top-right',
+          style: {
+            background: '#2196F3',
+            color: 'white',
+            border: 'none'
+          }
+        })
+      }
+    })
+
+    return () => {
+      socket.off('user_joined')
+      socket.off('user_left')
+    }
+  }, [socket, users])
 
   /* Si el ref existe usa ese nodo; si no, cae al body para no romper */
   const target = portalRoot.current ?? document.body
@@ -30,7 +71,7 @@ export default function Header({ comp, portalRoot }: Props) {
             <Sidebar
                 comp={comp.sidebar}
                 isOpen={open}
-                onClose={() => { setOpen(false) }} // ← esta línea
+                onClose={() => { setOpen(false) }}
             />
           )}
         </>,

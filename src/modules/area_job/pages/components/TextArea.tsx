@@ -13,6 +13,7 @@ export default function TextArea({ comp }: Props) {
       style={{
         backgroundColor: comp.style?.backgroundColor ?? '#ffffff',
         borderRadius: comp.style?.borderRadius ?? 6,
+        border: comp.style?.border ?? '1px solid #e5e7eb',
         paddingTop: comp.style?.padding?.top ?? 8,
         paddingBottom: comp.style?.padding?.bottom ?? 8,
         paddingLeft: comp.style?.padding?.left ?? 10,

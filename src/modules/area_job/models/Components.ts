@@ -9,6 +9,7 @@ export interface BaseComponent {
 export interface ComponentStyle {
   backgroundColor?: string
   borderRadius?: number
+  border?: string
   padding?: {
     top?: number
     right?: number

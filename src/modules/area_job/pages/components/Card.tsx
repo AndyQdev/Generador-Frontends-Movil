@@ -11,6 +11,7 @@ export default function Card({ comp }: Props) {
       style={{
         backgroundColor: comp.style?.backgroundColor,
         borderRadius: comp.style?.borderRadius,
+        border: comp.style?.border ?? '1px solid #e5e7eb',
         paddingTop: comp.style?.padding?.top,
         paddingBottom: comp.style?.padding?.bottom,
         paddingLeft: comp.style?.padding?.left,
