@@ -51,6 +51,12 @@ interface User {
   id: string
   name: string
 }
+export type UserSelection = {
+  userId: string
+  userName: string
+  componentId: string
+  pageId: string
+}
 
 export default function Editor() {
   useHeader([
@@ -83,6 +89,7 @@ export default function Editor() {
   const [clipboard, setClipboard] = useState<ComponentItem | null>(null)
   const isHistoryUpdate = useRef(false)
   const lastPagesRef = useRef(pages)
+  const [selections, setSelections] = useState<UserSelection[]>([])
 
   useEffect(() => {
     if (!activeProject) return
@@ -163,6 +170,7 @@ export default function Editor() {
         socket.on('user_left', (userId: string) => {
           console.log('👋 Usuario desconectado:', userId)
           setUsersInProject(prev => prev.filter(u => u.id !== userId))
+          setSelections(sel => sel.filter(s => s.userId !== userId))
           setUsers(prev => prev.filter(u => u.id !== userId))
         })
 
@@ -272,6 +280,19 @@ export default function Editor() {
             return next
           })
         })
+        socket.on('component_selected', (data) => {
+          setSelections((prev) => {
+            // Elimina la selección previa de este usuario
+            const filtered = prev.filter(sel => sel.userId !== data.user_id)
+            return [...filtered, {
+              userId: data.user_id,
+              userName: data.user_name,
+              componentId: data.component_id,
+              pageId: data.page_id
+            }]
+          })
+        })
+        
         return () => {
           socket.off('usersInProject')
           socket.off('user_joined')
@@ -1080,6 +1101,7 @@ export default function Editor() {
         handleExport={handleExport}
         setOpenDlg={setOpenDlg}
         onDeletePage={handleDeletePage}
+        userSelections={selections}
       />
     </div>
   )

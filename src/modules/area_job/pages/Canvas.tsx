@@ -6,6 +6,7 @@ import Toolbar from './Toolbar' // barra inferior
 import { type Page } from '@/modules/projects/models/page.model'
 import { type ComponentItem } from './page'
 import { type Device, DEVICES } from '../utils/devices'
+import { type UserSelection } from './page'
 
 interface CanvasProps {
   pages: Page[] // Lista de páginas
@@ -25,6 +26,7 @@ interface CanvasProps {
   setOpenDlg: (open: boolean) => void
   currentProjectId: string
   onDeletePage?: (pageId: string) => void // Nueva prop para eliminar página
+  userSelections: UserSelection[]
 }
 
 export default function Canvas({
@@ -40,7 +42,8 @@ export default function Canvas({
   handleExport,
   setOpenDlg,
   currentProjectId,
-  onDeletePage
+  onDeletePage,
+  userSelections
 }: CanvasProps) {
   const [mode, setMode] = useState<'select' | 'hand'>('select')
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -240,6 +243,7 @@ export default function Canvas({
                           scale={scale} // Pasa la escala actual al frame
                           currentPageId={current?.id ?? ''} // Pasa el id de la página actual o una cadena vacía si es null
                           onDeletePage={onDeletePage}
+                          userSelections={userSelections}
                         />
                     ))}
                   </div>

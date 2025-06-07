@@ -23,7 +23,15 @@ import Calendar from './components/Calendar'
 import Search from './components/Search'
 import Icon from './components/Icon'
 
+
 interface PageFrameProps {
+  userSelections: {
+    userId: string
+    userName: string
+    componentId: string
+    pageId: string
+  }[]
+
   page: Page // Página que se está renderizando
   selected: boolean // Si la página está seleccionada
   onClick: () => void // Función para manejar el clic en la página
@@ -57,8 +65,10 @@ export default function PageFrame({
   pageIndex,
   currentProjectId,
   device,
-  onDeletePage
+  onDeletePage,
+  userSelections
 }: PageFrameProps) {
+  const { selectedComponent } = useComponentContext()
   let isDragging = false
   const [confirmDeleteRowIndex, setConfirmDeleteRowIndex] = useState<number | null>(null)
   const { setSelectedPage } = useComponentContext()
@@ -113,39 +123,39 @@ export default function PageFrame({
         )}
       </div>
 
-    <div ref={pageRef}
-      style={{ width: device.width, height: device.height }}
-      className={cn(
-        'relative shadow-lg border overflow-hidden bg-[#D9D9D9] rounded-3xl',
-        selected ? 'ring-2 ring-blue-500' : 'border-gray-400'
-      )}
-      onClick={(e) => {
-        e.stopPropagation() // ⚡ Evitamos que el click se propague innecesariamente
-        if (page.id !== currentPageId) {
-          onClick() // 👉 sigue llamando tu función original (activar esta página)
-        } else {
-          setSelectedComponent(null) // 👉 deselecciona cualquier componente
-          setSelectedPage(page) // 👉 selecciona esta página
-        }
-      }}
-      onDrop={(e) => {
-        e.preventDefault() // Evita el comportamiento predeterminado
-        onDrop(e, page.id, scale) // Llama a la función pasada como prop con el id de la página
-      }}
-      onDragOver={(e) => {
-        e.preventDefault() // Permite que el elemento sea soltado
-        onDragOver(e) // Llama a la función pasada como prop
-      }}
-      onPointerDownCapture={() => {
-        if (page.id !== currentPageId) { // aún no es la página activa
-          onClick() // 1️⃣ selecciona la página
-          /* Al detener la propagación evitamos que el hijo (<Rnd>) procese el
-             evento y arranque un drag indebido                            */
-        }
-      }}
-    >
-      <div
-        className="
+      <div ref={pageRef}
+        style={{ width: device.width, height: device.height }}
+        className={cn(
+          'relative shadow-lg border overflow-hidden bg-[#D9D9D9] rounded-3xl',
+          selected ? 'ring-2 ring-blue-500' : 'border-gray-400'
+        )}
+        onClick={(e) => {
+          e.stopPropagation() // ⚡ Evitamos que el click se propague innecesariamente
+          if (page.id !== currentPageId) {
+            onClick() // 👉 sigue llamando tu función original (activar esta página)
+          } else {
+            setSelectedComponent(null) // 👉 deselecciona cualquier componente
+            setSelectedPage(page) // 👉 selecciona esta página
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault() // Evita el comportamiento predeterminado
+          onDrop(e, page.id, scale) // Llama a la función pasada como prop con el id de la página
+        }}
+        onDragOver={(e) => {
+          e.preventDefault() // Permite que el elemento sea soltado
+          onDragOver(e) // Llama a la función pasada como prop
+        }}
+        onPointerDownCapture={() => {
+          if (page.id !== currentPageId) { // aún no es la página activa
+            onClick() // 1️⃣ selecciona la página
+            /* Al detener la propagación evitamos que el hijo (<Rnd>) procese el
+               evento y arranque un drag indebido                            */
+          }
+        }}
+      >
+        <div
+          className="
           absolute top-0 left-0 z-50
           w-full h-6
           flex items-center justify-between
@@ -175,163 +185,199 @@ export default function PageFrame({
           bg-gray-500/60
           pointer-events-none
         "
-      />
-      {/* Renderizar los componentes de la página */}
-      {page.components.map((comp, index) => (
-        <Rnd
-          key={comp.id}
-          size={{
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            width: toPx(comp.width, device.width),
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            height: toPx(comp.height, device.height)
-          }}
-          position={{
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            x: toPx(comp.x, device.width),
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            y: toPx(comp.y, device.height)
-          }}
-          scale={scale}
-          // disableDragging={(page.id !== currentPageId) && (comp.locked ?? false)}
-          // enableResizing={page.id === currentPageId && (!comp.locked)}
-          disableDragging={comp.locked ?? false}
-          enableResizing={!comp.locked}
-          onClick={() => {
-            if (page.id !== currentPageId) return
-            if (!isDragging && page.id === currentPageId) { // Validar que la página sea la actual
-              setSelectedPage(null)
-              setSelectedComponent(comp)
-            }
-          }}
-          onDrag={(_e, d) => {
-            if (page.id !== currentPageId) return
-            emitMove(
-              comp,
-              toPct(d.x, device.width),
-              toPct(d.y, device.height)
-            )
-          }}
-          onResize={(_e, _dir, ref, _delta, pos) => {
-            emitResize(
-              comp,
-              toPct(parseInt(ref.style.width), device.width),
-              toPct(parseInt(ref.style.height), device.height),
-              toPct(pos.x, device.width),
-              toPct(pos.y, device.height)
-            )
-          }}
-          onDragStart={(e) => {
-            if (page.id !== currentPageId) {
-              e.preventDefault()
-              return false
-            }
-            isDragging = true
-          }}
-          onDragStop={(_e, d) => {
-            isDragging = false
-            const xPct = toPct(d.x, device.width)
-            const yPct = toPct(d.y, device.height)
-            updateComponent(pageIndex, index, {
-              ...comp,
-              x: toPct(d.x, device.width),
-              y: toPct(d.y, device.height)
-            })
-            const socket = getSocket()
-            socket?.emit('component_updated', {
-              project_id: currentProjectId,
-              page_id: page.id,
-              component: {
-                ...comp,
-                x: xPct,
-                y: yPct,
-                width: comp.width,
-                height: comp.height
-              }
-            })
-          }}
-          onResizeStop={(_e, _dir, ref, _delta, pos) => {
-            const wPct = toPct(parseInt(ref.style.width), device.width)
-            const hPct = toPct(parseInt(ref.style.height), device.height)
-            const xPct = toPct(pos.x, device.width)
-            const yPct = toPct(pos.y, device.height)
+        />
+        {/* Renderizar los componentes de la página */}
 
-            updateComponent(pageIndex, index, {
-              ...comp,
-              width: wPct,
-              height: hPct,
-              x: xPct,
-              y: yPct
-            })
+        {page.components.map((comp, index) => {
+          /* ── ¿Algún OTRO usuario tiene seleccionado este componente? ───────── */
+          const other = userSelections.find(
+            (s) => s.componentId === comp.id && s.pageId === page.id
+          )
+          console.log('Componente:', comp.id, 'Seleccionado por:', other)
+          /* ──────────────────────────────────────────────────────────────────── */
 
-            socket?.emit('component_updated', {
-              project_id: currentProjectId,
-              page_id: page.id,
-              component: {
-                ...comp,
-                width: wPct,
-                height: hPct
-              }
-            })
-          }}
-          bounds="parent"
-        >
-          <div className="h-full w-full relative">
-            {/* Botón de eliminar */}
-            {selected && (
-              <button
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                onClick={() => { handleDeleteComponent(comp.id) }}
-                className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-bl hover:bg-red-600 z-10"
-                title="Eliminar componente"
-              >
-                ×
-              </button>
-            )}
+          return (
+            <Rnd
+              key={comp.id}
+              size={{
+                width: toPx(comp.width, device.width),
+                height: toPx(comp.height, device.height)
+              }}
+              position={{
+                x: toPx(comp.x, device.width),
+                y: toPx(comp.y, device.height)
+              }}
+              scale={scale}
+              disableDragging={comp.locked ?? false}
+              enableResizing={!comp.locked}
+              onClick={() => {
+                if (page.id !== currentPageId) return
+                if (!isDragging && page.id === currentPageId) {
+                  setSelectedPage(null)
+                  setSelectedComponent(comp)
 
-            {/* Contenido del componente */}
-            {
-            (() => {
-              switch (comp.type) {
-                case 'button':
-                  return <Button comp={comp} />
-                case 'input':
-                  return <Input comp={comp}></Input>
-                case 'header':
-                  return <Header comp={comp} portalRoot={pageRef}/>
-                case 'bottomNavigationBar':
-                  return <BottomNavigationBar comp={comp} />
-                case 'datatable':
-                  return <DataTable comp={comp}/>
-                case 'select':
-                  return <Select comp={comp} />
-                case 'checklist':
-                  return <CheckList comp={comp} />
-                case 'radiobutton':
-                  return <RadioButton comp={comp} />
-                case 'card':
-                  return <Card comp={comp} />
-                case 'label':
-                  return <Label comp={comp} />
-                case 'textArea':
-                  return <TextArea comp={comp} />
-                case 'imagen':
-                  return <Imagen comp={comp} />
-                case 'calendar':
-                  return <Calendar comp={comp} />
-                case 'search':
-                  return <Search comp={comp} />
-                case 'icon':
-                  return <Icon comp={comp} />
-                default:
-                  return <div>Componente no soportado</div>
-              }
-            })()
-          }
+                  // Emitir selección
+                  const socket = getSocket()
+                  const user = JSON.parse(localStorage.getItem('user') || '{}')
+                  console.log('Emitting selection:', {
+                    project_id: currentProjectId,
+                    page_id: page.id,
+                    component_id: comp.id,
+                    user_id: user.id,
+                    user_name: user.name
+                  })
+                  socket?.emit('component_selected', {
+                    project_id: currentProjectId,
+                    page_id: page.id,
+                    component_id: comp.id,
+                    user_id: user.id,
+                    user_name: user.name,
+                    origin: socket?.id
+                  })
+                }
+              }}
+              onDrag={(_e, d) => {
+                if (page.id !== currentPageId) return
+                emitMove(
+                  comp,
+                  toPct(d.x, device.width),
+                  toPct(d.y, device.height)
+                )
+              }}
+              onResize={(_e, _dir, ref, _delta, pos) => {
+                emitResize(
+                  comp,
+                  toPct(parseInt(ref.style.width), device.width),
+                  toPct(parseInt(ref.style.height), device.height),
+                  toPct(pos.x, device.width),
+                  toPct(pos.y, device.height)
+                )
+              }}
+              onDragStart={(e) => {
+                if (page.id !== currentPageId) {
+                  e.preventDefault()
+                  return false
+                }
+                isDragging = true
+              }}
+              onDragStop={(_e, d) => {
+                isDragging = false
+                const xPct = toPct(d.x, device.width)
+                const yPct = toPct(d.y, device.height)
+                updateComponent(pageIndex, index, {
+                  ...comp,
+                  x: toPct(d.x, device.width),
+                  y: toPct(d.y, device.height)
+                })
+                const socket = getSocket()
+                socket?.emit('component_updated', {
+                  project_id: currentProjectId,
+                  page_id: page.id,
+                  component: {
+                    ...comp,
+                    x: xPct,
+                    y: yPct,
+                    width: comp.width,
+                    height: comp.height
+                  }
+                })
+              }}
+              onResizeStop={(_e, _dir, ref, _delta, pos) => {
+                const wPct = toPct(parseInt(ref.style.width), device.width)
+                const hPct = toPct(parseInt(ref.style.height), device.height)
+                const xPct = toPct(pos.x, device.width)
+                const yPct = toPct(pos.y, device.height)
 
-            </div>
-          </Rnd>
-      ))}
+                updateComponent(pageIndex, index, {
+                  ...comp,
+                  width: wPct,
+                  height: hPct,
+                  x: xPct,
+                  y: yPct
+                })
+
+                socket?.emit('component_updated', {
+                  project_id: currentProjectId,
+                  page_id: page.id,
+                  component: {
+                    ...comp,
+                    width: wPct,
+                    height: hPct
+                  }
+                })
+              }}
+              bounds="parent"
+              className={cn(
+                'relative',
+                selectedComponent?.id === comp.id && 'ring-2 ring-blue-500 ring-offset-2',
+                other && 'ring-2 ring-pink-500'
+              )}
+            >
+              <div className="h-full w-full relative">
+                {/* ─────────── Overlay cuando OTRO usuario lo selecciona ─────────── */}
+                {other && (
+                  <div className="absolute inset-0 ring-2 ring-pink-500 rounded pointer-events-none z-40">
+                    <div className="absolute -top-6 left-0 bg-pink-500 text-white text-xs px-2 py-0.5 rounded shadow-md">
+                      {other.userName} está editando
+                    </div>
+                  </div>
+                )}
+                {/* ───────────────────────────────────────────────────────────────── */}
+
+                {/* Botón de eliminar */}
+                {selected && (
+                  <button
+                    onClick={() => { handleDeleteComponent(comp.id) }}
+                    className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-bl hover:bg-red-600 z-10"
+                    title="Eliminar componente"
+                  >
+                    ×
+                  </button>
+                )}
+
+                {/* Contenido del componente */}
+                {
+                  (() => {
+                    switch (comp.type) {
+                      case 'button':
+                        return <Button comp={comp} />
+                      case 'input':
+                        return <Input comp={comp}></Input>
+                      case 'header':
+                        return <Header comp={comp} portalRoot={pageRef} />
+                      case 'bottomNavigationBar':
+                        return <BottomNavigationBar comp={comp} />
+                      case 'datatable':
+                        return <DataTable comp={comp} />
+                      case 'select':
+                        return <Select comp={comp} />
+                      case 'checklist':
+                        return <CheckList comp={comp} />
+                      case 'radiobutton':
+                        return <RadioButton comp={comp} />
+                      case 'card':
+                        return <Card comp={comp} />
+                      case 'label':
+                        return <Label comp={comp} />
+                      case 'textArea':
+                        return <TextArea comp={comp} />
+                      case 'imagen':
+                        return <Imagen comp={comp} />
+                      case 'calendar':
+                        return <Calendar comp={comp} />
+                      case 'search':
+                        return <Search comp={comp} />
+                      case 'icon':
+                        return <Icon comp={comp} />
+                      default:
+                        return <div>Componente no soportado</div>
+                    }
+                  })()
+                }
+              </div>
+            </Rnd>
+          )
+        })}
         {confirmDeleteRowIndex !== null && (
           <div className="absolute inset-0 z-[9999] flex items-center justify-center bg-black/40">
             <div className="bg-white p-6 rounded-lg shadow-lg w-[400px] space-y-4">
