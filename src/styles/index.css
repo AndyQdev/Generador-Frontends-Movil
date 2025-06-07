@@ -18,6 +18,14 @@
   50% { opacity: 0; }
 }
 
+@keyframes wipeOut {
+  /* 0 % = imagen completa              */
+  0%   { clip-path: inset(0% 0 0 0); }
+
+  /* 100 % = recortada hasta el fondo   */
+  100% { clip-path: inset(100% 0 0 0); }
+}
+
 .typing-cursor::after {
   content: '|';
   animation: blink 1s infinite;

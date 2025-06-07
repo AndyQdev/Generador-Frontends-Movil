@@ -42,6 +42,11 @@ interface PageFrameProps {
   currentProjectId: string
   device: Device
   onDeletePage?: (pageId: string) => void // Nueva prop para eliminar página
+  activeLoadingImage: null | {
+    pageId: string
+    imageUrl: string
+  }
+  setActiveLoadingImage: (image: { pageId: string, imageUrl: string } | null) => void
 }
 export default function PageFrame({
   page,
@@ -57,7 +62,9 @@ export default function PageFrame({
   pageIndex,
   currentProjectId,
   device,
-  onDeletePage
+  onDeletePage,
+  activeLoadingImage,
+  setActiveLoadingImage
 }: PageFrameProps) {
   let isDragging = false
   const [confirmDeleteRowIndex, setConfirmDeleteRowIndex] = useState<number | null>(null)
@@ -176,8 +183,28 @@ export default function PageFrame({
           pointer-events-none
         "
       />
-      {/* Renderizar los componentes de la página */}
-      {page.components.map((comp, index) => (
+      {activeLoadingImage?.pageId === page.id && (
+        <div
+          className="absolute inset-0 z-40 overflow-hidden pointer-events-none"
+          /* cuando acaba la animación, quitamos la capa */
+          onAnimationEnd={() => { setActiveLoadingImage(null) }}
+        >
+          <img
+            src={activeLoadingImage.imageUrl}
+            alt="loading overlay"
+            className="w-full h-full object-cover"
+            style={{
+              animation: 'wipeOut 8s linear forwards'
+            }}
+          />
+
+          {/* etiqueta sutil de estado */}
+          <span className="absolute top-2 right-2 text-xs font-semibold text-gray-600 bg-white/80 px-2 py-0.5 rounded shadow">
+            Generando…
+          </span>
+        </div>
+      )}
+      {!page.loading && page.components.map((comp, index) => (
         <Rnd
           key={comp.id}
           size={{

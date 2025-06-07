@@ -25,6 +25,11 @@ interface CanvasProps {
   setOpenDlg: (open: boolean) => void
   currentProjectId: string
   onDeletePage?: (pageId: string) => void // Nueva prop para eliminar página
+  activeLoadingImage: null | {
+    pageId: string
+    imageUrl: string
+  }
+  setActiveLoadingImage: (image: { pageId: string, imageUrl: string } | null) => void
 }
 
 export default function Canvas({
@@ -40,7 +45,9 @@ export default function Canvas({
   handleExport,
   setOpenDlg,
   currentProjectId,
-  onDeletePage
+  onDeletePage,
+  activeLoadingImage,
+  setActiveLoadingImage
 }: CanvasProps) {
   const [mode, setMode] = useState<'select' | 'hand'>('select')
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -183,15 +190,15 @@ export default function Canvas({
                   msOverflowStyle: 'none'
                 }}
               >
-                <TransformComponent 
-                  wrapperStyle={{ 
+                <TransformComponent
+                  wrapperStyle={{
                     width: '100%',
                     height: '100%',
                     position: 'fixed',
                     left: 0
                   }}
-                  contentStyle={{ 
-                    margin: '20px', 
+                  contentStyle={{
+                    margin: '20px',
                     border: '1px solid #ccc',
                     minWidth: '200%',
                     minHeight: '100%',
@@ -222,6 +229,7 @@ export default function Canvas({
                           device={device}
                           currentProjectId={currentProjectId}
                           page={p}
+                          setActiveLoadingImage={setActiveLoadingImage}
                           pageIndex={pageIdx}
                           selected={!!(current && p.id === current.id)}
                           onClick={() => { onSelectPage(p.id) }}
@@ -240,6 +248,7 @@ export default function Canvas({
                           scale={scale} // Pasa la escala actual al frame
                           currentPageId={current?.id ?? ''} // Pasa el id de la página actual o una cadena vacía si es null
                           onDeletePage={onDeletePage}
+                          activeLoadingImage={activeLoadingImage}
                         />
                     ))}
                   </div>

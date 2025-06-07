@@ -1,14 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialogHeader } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { toast } from 'sonner'
 import { API_BASEURL, ENDPOINTS } from '@/utils'
-import { type ButtonComponent } from '../models/Components'
-import { type ComponentItem } from './page'
 
 interface NewPageDialogProps {
   open: boolean
@@ -23,6 +19,7 @@ interface NewPageDialogProps {
   onPageCreated: (newPage: any) => void
   onUpdatePages: (updatedPages: any[]) => void
   pages: any[]
+  setActiveLoadingImage: (image: { pageId: string, imageUrl: string }) => void
 }
 
 export default function NewPageDialog({
@@ -31,8 +28,7 @@ export default function NewPageDialog({
   activeProjectId,
   allButtons,
   onPageCreated,
-  onUpdatePages,
-  pages
+  setActiveLoadingImage
 }: NewPageDialogProps) {
   const [newName, setNewName] = useState('')
   const [selectedButtonId, setSelectedButtonId] = useState<string | null>(null)
@@ -40,134 +36,60 @@ export default function NewPageDialog({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [loadingMsg, setLoadingMsg] = useState('')
-  const [genCode, setGenCode] = useState<string | null>(null)
-  const dotsRef = useRef<NodeJS.Timeout | null>(null)
-
-  const startDots = () => {
-    let i = 0
-    dotsRef.current = setInterval(() => {
-      i = (i + 1) % 4
-      setLoadingMsg(`🛠️ Generando boceto con IA${'.'.repeat(i)}`)
-    }, 400)
-  }
-
-  const stopDots = () => {
-    if (dotsRef.current) clearInterval(dotsRef.current)
-    setLoadingMsg('')
-  }
-
-  const typeCode = (
-    full: string,
-    onComplete?: () => void,
-    step = 2,
-    delay = 10
-  ) => {
-    let idx = 0
-    const int = setInterval(() => {
-      if (idx <= full.length) {
-        setGenCode(full.slice(0, idx))
-        idx += step
-      } else {
-        clearInterval(int)
-        onComplete?.()
-      }
-    }, delay)
-  }
 
   const handleCreatePage = async () => {
     if (!newName.trim()) return
     setCreating(true)
     setIsGenerating(true)
-    setPreviewUrl(null)
-    startDots()
+
     try {
-      // 1. Crear la página
-      const pageData = {
-        name: newName,
-        background_color: '#ffffff',
-        grid_enabled: true,
-        device_mode: 'mobile',
-        components: []
-      }
-
-      console.log('📝 Creando página:', pageData)
-
-      const response = await fetch(`${API_BASEURL}${ENDPOINTS.PROJECTS}/${activeProjectId}/pages`, {
+    /* 1. Crea la página vacía en el backend */
+      const pageData = { name: newName, background_color: '#fff', grid_enabled: true, device_mode: 'mobile', components: [] }
+      const r = await fetch(`${API_BASEURL}${ENDPOINTS.PROJECTS}/${activeProjectId}/pages`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify(pageData)
       })
+      if (!r.ok) throw new Error('No se pudo crear la página')
+      const { data: createdPage } = await r.json()
 
-      if (!response.ok) throw new Error('No se pudo crear la página')
-
-      const { data: createdPage } = await response.json()
-      console.log('✅ Página creada:', createdPage)
-
-      // 2. Si hay imagen, procesarla
+      /* 2. Procesar la imagen ------------- */
       if (selectedImage) {
-        console.log('🖼️ Procesando imagen...')
-        const imageFormData = new FormData()
-        imageFormData.append('img', selectedImage)
-
-        const imageResponse = await fetch(
+        console.log('🖼️ Procesando imagen en backend…')
+        const form = new FormData()
+        form.append('img', selectedImage)
+        const imgRes = await fetch(
           `${API_BASEURL}${ENDPOINTS.PROJECTS}/${activeProjectId}/pages/${createdPage.id}/process-image`,
           {
             method: 'POST',
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`
-            },
-            body: imageFormData
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            body: form
           }
         )
+        if (!imgRes.ok) throw new Error('No se pudo procesar la imagen')
+        const { data: updatedPage } = await imgRes.json()
 
-        if (!imageResponse.ok) {
-          throw new Error('No se pudo procesar la imagen')
+        // Cargar imagen en memoria para animación
+        const url = URL.createObjectURL(selectedImage)
+
+        // ⬇️ 1. Enviamos página con componentes ya cargados
+        const pageWithComps = {
+          ...updatedPage,
+          loadingImage: url // <- sin `loading`, sin `progress`
         }
+        onPageCreated(pageWithComps)
+        onOpenChange(false)
 
-        const { data: updatedPage } = await imageResponse.json()
-        console.log('✅ Imagen procesada correctamente:', updatedPage)
-
-        // Actualizar la página creada con los componentes generados
-        createdPage.components = updatedPage.components
+        // ⬇️ 2. Disparamos animación aparte
+        setActiveLoadingImage({ pageId: updatedPage.id, imageUrl: url })
       }
 
-      stopDots()
-      const pretty = JSON.stringify(createdPage.components ?? [], null, 2)
-
-      typeCode(pretty, () => {
-        if (selectedButtonId) {
-          const updated = [...pages]
-          for (const page of updated) {
-            const btn = page.components.find(
-              (c: ComponentItem) => c.type === 'button' && c.id === selectedButtonId
-            ) as ButtonComponent | undefined
-            if (btn) {
-              console.log('🔗 Actualizando botón:', {
-                buttonId: btn.id,
-                newRoute: createdPage.id
-              })
-              btn.route = createdPage.id
-              break
-            }
-          }
-          onUpdatePages(updated)
-        }
-
-        onPageCreated(createdPage)
-
-        onOpenChange(false)
-        setNewName('')
-        setSelectedImage(null)
-        setSelectedButtonId(null)
-        toast.success('Página creada exitosamente')
-      }, 8, 2)
-    } catch (e) {
-      stopDots()
-      console.error('Error:', e)
+      toast.success('Página creada exitosamente')
+      setNewName('')
+      setSelectedImage(null)
+      setSelectedButtonId(null)
+    } catch (err) {
+      console.error(err)
       toast.error('No se pudo crear la página')
     } finally {
       setCreating(false)
@@ -235,24 +157,10 @@ export default function NewPageDialog({
                 />
               )}
 
-              {isGenerating && !genCode && (
-                <p className="text-sm font-medium whitespace-pre-line">{loadingMsg}</p>
-              )}
-
-              {genCode && (
-                <SyntaxHighlighter
-                  language="json"
-                  style={oneDark}
-                  wrapLongLines
-                  customStyle={{
-                    fontSize: '0.75rem',
-                    background: 'transparent',
-                    margin: 0,
-                    padding: 0
-                  }}
-                >
-                  {genCode}
-                </SyntaxHighlighter>
+              {isGenerating && (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-sm font-medium text-gray-500">Procesando con IA...</p>
+                </div>
               )}
             </div>
           </div>

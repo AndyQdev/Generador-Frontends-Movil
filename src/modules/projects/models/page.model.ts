@@ -11,6 +11,9 @@ export interface Page extends ApiBase {
   grid_enabled?: boolean
   device_mode?: string
   components: ComponentItem[]
+  loading?: boolean
+  progress?: number
+  loadingImage?: string | null
 }
 
 // export interface CreateProject extends Partial<Omit<Project, 'status' | 'create_date' | 'pages'>> {}

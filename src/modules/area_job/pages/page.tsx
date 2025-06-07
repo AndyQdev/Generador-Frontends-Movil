@@ -45,6 +45,9 @@ interface Page {
   grid_enabled?: boolean
   device_mode?: string
   components: ComponentItem[]
+  loading?: boolean
+  progress?: number
+  loadingImage?: string | null
 }
 
 interface User {
@@ -83,7 +86,10 @@ export default function Editor() {
   const [clipboard, setClipboard] = useState<ComponentItem | null>(null)
   const isHistoryUpdate = useRef(false)
   const lastPagesRef = useRef(pages)
-
+  const [activeLoadingImage, setActiveLoadingImage] = useState<null | {
+    pageId: string
+    imageUrl: string
+  }>(null)
   useEffect(() => {
     if (!activeProject) return
     setPages(activeProject.pages ?? [])
@@ -842,14 +848,14 @@ export default function Editor() {
         const newIndex = historyIndex - 1
         const previousState = structuredClone(history[newIndex])
         const socket = getSocket()
-  
+
         setHistoryIndex(newIndex)
         setPages(previousState)
-  
+
         if (socket) {
           syncPagesDiff(lastPagesRef.current, previousState, activeProject?.id, socket)
         }
-  
+
         lastPagesRef.current = previousState
         setTimeout(() => {
           isHistoryUpdate.current = false
@@ -857,7 +863,6 @@ export default function Editor() {
       }
     }
   }
-  
 
   const syncPagesDiff = (
     prevPages: Page[],
@@ -865,21 +870,21 @@ export default function Editor() {
     projectId: string | undefined,
     socket: any
   ) => {
-    const prevMap = new Map<string, { pageId: string; comp: ComponentItem }>()
-    const nextMap = new Map<string, { pageId: string; comp: ComponentItem }>()
-  
+    const prevMap = new Map<string, { pageId: string, comp: ComponentItem }>()
+    const nextMap = new Map<string, { pageId: string, comp: ComponentItem }>()
+
     for (const page of prevPages) {
       for (const comp of page.components) {
         prevMap.set(comp.id, { pageId: page.id, comp })
       }
     }
-  
+
     for (const page of nextPages) {
       for (const comp of page.components) {
         nextMap.set(comp.id, { pageId: page.id, comp })
       }
     }
-  
+
     // Detectar eliminados (estaban antes, ya no están)
     for (const [id, { pageId }] of prevMap) {
       if (!nextMap.has(id)) {
@@ -890,7 +895,7 @@ export default function Editor() {
         })
       }
     }
-  
+
     // Detectar agregados (no estaban antes)
     for (const [id, { pageId, comp }] of nextMap) {
       if (!prevMap.has(id)) {
@@ -901,7 +906,7 @@ export default function Editor() {
         })
       }
     }
-  
+
     // Detectar cambios en componentes existentes
     for (const [id, { pageId, comp }] of nextMap) {
       if (prevMap.has(id)) {
@@ -917,7 +922,7 @@ export default function Editor() {
       }
     }
   }
-  
+
   // Función para rehacer (Ctrl+Y)
   const handleRedo = (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'y') {
@@ -927,14 +932,14 @@ export default function Editor() {
         const newIndex = historyIndex + 1
         const nextState = structuredClone(history[newIndex])
         const socket = getSocket()
-  
+
         setHistoryIndex(newIndex)
         setPages(nextState)
-  
+
         if (socket) {
           syncPagesDiff(lastPagesRef.current, nextState, activeProject?.id, socket)
         }
-  
+
         lastPagesRef.current = nextState
         setTimeout(() => {
           isHistoryUpdate.current = false
@@ -942,8 +947,6 @@ export default function Editor() {
       }
     }
   }
-  
-  
 
   // Función para copiar (Ctrl+C)
   const handleCopy = (e: KeyboardEvent) => {
@@ -1023,7 +1026,6 @@ export default function Editor() {
 
   return (
     <div className="flex flex-col h-screen w-full">
-      {/* Diálogo de confirmación de eliminación */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent>
           <AlertDialogHeader>
@@ -1053,10 +1055,38 @@ export default function Editor() {
       <NewPageDialog
         open={openDlg}
         onOpenChange={setOpenDlg}
+        setActiveLoadingImage={setActiveLoadingImage}
         activeProjectId={activeProject?.id ?? ''}
         allButtons={allButtons}
         onPageCreated={(newPage) => {
+          // Inicia la página en modo "cargando"
           setPages(prev => [...prev, newPage])
+
+          // Simular el progreso de la animación visual
+          let progress = 0
+          const interval = setInterval(() => {
+            progress += 2
+            setPages(prev =>
+              prev.map(p =>
+                p.id === newPage.id ? { ...p, progress } : p
+              )
+            )
+            if (progress >= 100) {
+              clearInterval(interval)
+              setPages(prev =>
+                prev.map(p =>
+                  p.id === newPage.id
+                    ? {
+                        ...p,
+                        loading: false,
+                        progress: 100,
+                        loadingImage: null
+                      }
+                    : p
+                )
+              )
+            }
+          }, 100) // 150ms × 20 pasos = 3s
         }}
         onUpdatePages={setPages}
         pages={pages}
@@ -1072,6 +1102,7 @@ export default function Editor() {
         }}
         currentProjectId={activeProject?.id ?? ''}
         setSelectedComponent={setSelectedComponent}
+        setActiveLoadingImage={setActiveLoadingImage}
         updateComponent={updateComponent}
         handleDeleteComponent={handleDeleteComponent}
         onDragOver={handleDragOver}
@@ -1080,6 +1111,7 @@ export default function Editor() {
         handleExport={handleExport}
         setOpenDlg={setOpenDlg}
         onDeletePage={handleDeletePage}
+        activeLoadingImage={activeLoadingImage}
       />
     </div>
   )

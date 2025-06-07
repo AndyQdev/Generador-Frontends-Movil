@@ -106,11 +106,11 @@ const Header = () => {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div>
-                                <Link 
+                                <Link
                                   to={item.path}
                                   className={`${
-                                    (!projects || projects.length === 0) && item.path === PrivateRoutes.AREA 
-                                      ? 'opacity-50 cursor-not-allowed pointer-events-none' 
+                                    (!projects || projects.length === 0) && item.path === PrivateRoutes.AREA
+                                      ? 'opacity-50 cursor-not-allowed pointer-events-none'
                                       : ''
                                   }`}
                                 >
@@ -172,7 +172,6 @@ const Header = () => {
               )}
         </TooltipProvider>
       </div>
-      <ModeToggle />
       <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
@@ -195,6 +194,7 @@ const Header = () => {
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+      <ModeToggle />
 
       <AlertDialog open={openModal} onOpenChange={setOpenModal}>
         <AlertDialogContent>
