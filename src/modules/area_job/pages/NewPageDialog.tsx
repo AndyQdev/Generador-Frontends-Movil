@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { API_BASEURL, ENDPOINTS } from '@/utils'
+import { getSocket } from '@/lib/socket'
 
 interface NewPageDialogProps {
   open: boolean
@@ -19,7 +20,7 @@ interface NewPageDialogProps {
   onPageCreated: (newPage: any) => void
   onUpdatePages: (updatedPages: any[]) => void
   pages: any[]
-  setActiveLoadingImage: (image: { pageId: string, imageUrl: string }) => void
+  setActiveLoadingImage: (image: { pageId: string, imageUrl: string } | null) => void
 }
 
 export default function NewPageDialog({
@@ -43,7 +44,7 @@ export default function NewPageDialog({
     setIsGenerating(true)
 
     try {
-    /* 1. Crea la página vacía en el backend */
+      /* 1. Crea la página vacía en el backend */
       const pageData = { name: newName, background_color: '#fff', grid_enabled: true, device_mode: 'mobile', components: [] }
       const r = await fetch(`${API_BASEURL}${ENDPOINTS.PROJECTS}/${activeProjectId}/pages`, {
         method: 'POST',
@@ -78,10 +79,27 @@ export default function NewPageDialog({
           loadingImage: url // <- sin `loading`, sin `progress`
         }
         onPageCreated(pageWithComps)
+
+        // Emitir evento de creación de página
+        const socket = getSocket()
+        socket?.emit('page_created', {
+          project_id: activeProjectId,
+          page: pageWithComps
+        })
+
         onOpenChange(false)
 
         // ⬇️ 2. Disparamos animación aparte
         setActiveLoadingImage({ pageId: updatedPage.id, imageUrl: url })
+      } else {
+        // Si no hay imagen, emitir evento con la página básica
+        const socket = getSocket()
+        socket?.emit('page_created', {
+          project_id: activeProjectId,
+          page: createdPage
+        })
+        onPageCreated(createdPage)
+        onOpenChange(false)
       }
 
       toast.success('Página creada exitosamente')
