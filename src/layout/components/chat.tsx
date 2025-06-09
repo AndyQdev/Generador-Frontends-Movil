@@ -451,12 +451,12 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                               .trim()
                           }
                         </SyntaxHighlighter>
-                        )
+                      )
                       : (
                         <p className={index === messages.length - 1 && msg.content.length < 10 ? 'typing-cursor' : ''}>
                           {msg.content}
                         </p>
-                        )}
+                      )}
                   </div>
                 </CardContent>
               </Card>
@@ -468,42 +468,42 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
       <div className="border-t p-4 flex gap-2 items-center min-h-[60px]">
         {!isRecording
           ? (
-          <>
-            <Input
-              value={input}
-              onChange={(e) => { setInput(e.target.value) }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  void handleSend()
-                }
-              }}
-              placeholder={isTestMode ? 'Modo prueba activado...' : 'Describe tu interfaz Flutter...'}
-              className="flex-1"
-              disabled={isTestMode}
-            />
-            {isThinking
-              ? (
-              <Button variant="destructive" onClick={handleStop}>
-                <StopCircle className="w-4 h-4 mr-2" />
-                Detener
-              </Button>
+            <>
+              <Input
+                value={input}
+                onChange={(e) => { setInput(e.target.value) }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    void handleSend()
+                  }
+                }}
+                placeholder={isTestMode ? 'Modo prueba activado...' : 'Describe tu interfaz Flutter...'}
+                className="flex-1"
+                disabled={isTestMode}
+              />
+              {isThinking
+                ? (
+                  <Button variant="destructive" onClick={handleStop}>
+                    <StopCircle className="w-4 h-4 mr-2" />
+                    Detener
+                  </Button>
                 )
-              : (
-              <Button
-                onClick={handleTestResponse}
-                disabled={isTestMode && !testJson.trim()}
-              >
-                <SendHorizonal className="h-5 w-5" />
-              </Button>
+                : (
+                  <Button
+                    onClick={handleTestResponse}
+                    disabled={isTestMode && !testJson.trim()}
+                  >
+                    <SendHorizonal className="h-5 w-5" />
+                  </Button>
                 )}
-          </>
-            )
+            </>
+          )
           : (
-          <div className="flex-1 flex items-center justify-center gap-4">
-            <AudioWaveLive />
-          </div>
-            )}
+            <div className="flex-1 flex items-center justify-center gap-4">
+              <AudioWaveLive />
+            </div>
+          )}
 
         {/* Micrófono */}
         {!isRecording && !isThinking && (
