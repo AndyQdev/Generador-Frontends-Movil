@@ -8,8 +8,6 @@ import { API_BASEURL } from '@/utils'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { type Page } from '@/modules/projects/models/page.model'
-import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AudioWaveLive } from './AudioWaveLive'
 
 interface ChatSidebarProps {
@@ -386,12 +384,12 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                               .trim()
                           }
                         </SyntaxHighlighter>
-                      )
+                        )
                       : (
                         <p className={index === messages.length - 1 && msg.content.length < 10 ? 'typing-cursor' : ''}>
                           {msg.content}
                         </p>
-                      )}
+                        )}
                   </div>
                 </CardContent>
               </Card>
@@ -422,19 +420,20 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                     <StopCircle className="w-4 h-4 mr-2" />
                     Detener
                   </Button>
-                )
+                  )
                 : (
+                  // eslint-disable-next-line no-void
                   <Button onClick={() => void handleSend()}>
                     <SendHorizonal className="h-5 w-5" />
                   </Button>
-                )}
+                  )}
             </>
-          )
+            )
           : (
             <div className="flex-1 flex items-center justify-center gap-4">
               <AudioWaveLive />
             </div>
-          )}
+            )}
 
         {/* Micrófono */}
         {!isRecording && !isThinking && (
