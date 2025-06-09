@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { MessageSquare, X, StopCircle, TestTube, SendHorizonal } from 'lucide-react'
+import { MessageSquare, X, StopCircle, SendHorizonal } from 'lucide-react'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import { useComponentContext } from '@/context/ComponentContext'
 import { API_BASEURL } from '@/utils'
@@ -25,8 +25,6 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
   ])
   const [input, setInput] = useState('')
   const [width, setWidth] = useState(360)
-  const [isTestMode, setIsTestMode] = useState(false)
-  const [testJson, setTestJson] = useState('')
   const resizerRef = useRef<HTMLDivElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
   const { updatePage, selectedPage } = useComponentContext()
@@ -334,33 +332,6 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
     return text.startsWith('✅ Componente generado:\n```json')
   }
 
-  const handleTestResponse = () => {
-    try {
-      const jsonData = JSON.parse(testJson)
-      const animatedContent = `✅ Componente generado:\n\`\`\`json\n${JSON.stringify(
-        jsonData,
-        null,
-        2
-      )}\n\`\`\``
-
-      const aiMessage = { role: 'ai', content: '' }
-      setMessages((prev) => [...prev, aiMessage])
-
-      animateTyping(animatedContent, aiMessage, () => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        if (jsonData.page) updatePage(jsonData.page)
-      }, 8, 4)
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'ai',
-          content: '⚠️ Error en el formato JSON de prueba.'
-        }
-      ])
-    }
-  }
-
   return (
     <aside
       ref={sidebarRef}
@@ -373,42 +344,6 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
           <CardTitle>Chat - {selectedPage?.name ?? 'Sin página'}</CardTitle>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" className={isTestMode ? 'text-yellow-500' : ''}>
-                <TestTube className="w-5 h-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Modo Prueba</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={isTestMode}
-                    onChange={(e) => { setIsTestMode(e.target.checked) }}
-                    className="w-4 h-4"
-                  />
-                  <label>Activar modo prueba</label>
-                </div>
-                {isTestMode && (
-                  <>
-                    <Textarea
-                      value={testJson}
-                      onChange={(e) => { setTestJson(e.target.value) }}
-                      placeholder="Ingresa el JSON de prueba..."
-                      className="h-[200px] font-mono text-sm"
-                    />
-                    <Button onClick={handleTestResponse} className="w-full">
-                      Probar Respuesta
-                    </Button>
-                  </>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="w-5 h-5" />
           </Button>
@@ -478,9 +413,8 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                     void handleSend()
                   }
                 }}
-                placeholder={isTestMode ? 'Modo prueba activado...' : 'Describe tu interfaz Flutter...'}
+                placeholder="Describe tu interfaz Flutter..."
                 className="flex-1"
-                disabled={isTestMode}
               />
               {isThinking
                 ? (
@@ -490,10 +424,7 @@ const ChatSidebar = ({ onClose }: ChatSidebarProps) => {
                   </Button>
                 )
                 : (
-                  <Button
-                    onClick={handleTestResponse}
-                    disabled={isTestMode && !testJson.trim()}
-                  >
+                  <Button onClick={() => void handleSend()}>
                     <SendHorizonal className="h-5 w-5" />
                   </Button>
                 )}
