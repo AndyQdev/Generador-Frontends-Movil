@@ -1,6 +1,8 @@
 // Toolbar.tsx
-import { Hand, MousePointer, Minus, Plus, Save, Download, FilePlus } from 'lucide-react'
+import { Hand, MousePointer, Minus, Plus, Save, Download, FilePlus, ChevronDown } from 'lucide-react'
 import { DEVICES, type Device } from '../utils/devices'
+import { useState } from 'react'
+import SelectPagesDialog from './SelectPagesDialog'
 
 interface ToolbarProps {
   zoom: number // Nivel de zoom actual
@@ -11,9 +13,14 @@ interface ToolbarProps {
   reset: () => void // Función para restablecer el zoom
   onSubmit: () => void // Función para guardar cambios
   handleExport: () => void
+  handleExportSelectedPages: (selectedPages: string[]) => void
   setOpenDlg: (open: boolean) => void
   device: Device
   setDevice: (d: Device) => void
+  pages: Array<{
+    id: string
+    name: string
+  }>
 }
 
 export default function Toolbar({
@@ -24,10 +31,15 @@ export default function Toolbar({
   zoomOut,
   onSubmit,
   handleExport,
+  handleExportSelectedPages,
   setOpenDlg,
   device,
-  setDevice
+  setDevice,
+  pages
 }: ToolbarProps) {
+  const [showExportMenu, setShowExportMenu] = useState(false)
+  const [showSelectPagesDialog, setShowSelectPagesDialog] = useState(false)
+
   return (
     <div className="fixed left-1/2 -translate-x-1/2 bottom-4 bg-neutral-800/90 backdrop-blur text-white rounded-full px-4 py-2 flex items-center shadow-lg">
       {/* Modo selección */}
@@ -62,7 +74,7 @@ export default function Toolbar({
       >
         <Minus size={18} />
       </button>
-      <span className="w-12 text-center text-sm">{zoom}%</span>
+      <span className="w-12 text-center text-sm">{Math.round(zoom)}%</span>
       <button
         onClick={zoomIn}
         className="p-2 rounded-full hover:bg-neutral-700 transition"
@@ -87,15 +99,41 @@ export default function Toolbar({
       </button>
 
       {/* Exportar */}
-      <button
-        onClick={() => {
-          handleExport()
-        }}
-        className="p-2 rounded-full transition hover:bg-neutral-500 flex items-center gap-2"
-        title="Exportar proyecto"
-      >
-        <Download size={18} />
-      </button>
+      <div className="relative">
+        <button
+          onClick={() => setShowExportMenu(!showExportMenu)}
+          className="p-2 rounded-full transition hover:bg-neutral-500 flex items-center gap-2"
+          title="Exportar proyecto"
+        >
+          <Download size={18} />
+          <ChevronDown size={14} />
+        </button>
+        
+        {showExportMenu && (
+          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-neutral-800 rounded-lg shadow-lg py-2 min-w-[200px]">
+            <button
+              onClick={() => {
+                handleExport()
+                setShowExportMenu(false)
+              }}
+              className="w-full px-4 py-2 text-left hover:bg-neutral-700 transition flex items-center gap-2"
+            >
+              <Download size={16} />
+              Descargar proyecto completo
+            </button>
+            <button
+              onClick={() => {
+                setShowSelectPagesDialog(true)
+                setShowExportMenu(false)
+              }}
+              className="w-full px-4 py-2 text-left hover:bg-neutral-700 transition flex items-center gap-2"
+            >
+              <Download size={16} />
+              Seleccionar páginas para descargar
+            </button>
+          </div>
+        )}
+      </div>
       {/* Botón para abrir el diálogo */}
       <button
         onClick={() => { setOpenDlg(true) }} // Abrir el diálogo
@@ -126,6 +164,13 @@ export default function Toolbar({
         ))}
       </select>
 
+      {/* Diálogo de selección de páginas */}
+      <SelectPagesDialog
+        open={showSelectPagesDialog}
+        onOpenChange={setShowSelectPagesDialog}
+        pages={pages}
+        onExport={handleExportSelectedPages}
+      />
     </div>
   )
 }

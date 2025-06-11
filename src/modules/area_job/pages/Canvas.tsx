@@ -22,6 +22,7 @@ interface CanvasProps {
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void // Función para manejar el evento de arrastrar un componente
   onSubmit: () => void // Función para guardar
   handleExport: () => void // Función para exportar
+  handleExportSelectedPages: (selectedPages: string[]) => void
   setOpenDlg: (open: boolean) => void
   currentProjectId: string
   onDeletePage?: (pageId: string) => void // Nueva prop para eliminar página
@@ -44,6 +45,7 @@ export default function Canvas({
   onDrop,
   onSubmit,
   handleExport,
+  handleExportSelectedPages,
   setOpenDlg,
   currentProjectId,
   onDeletePage,
@@ -260,17 +262,22 @@ export default function Canvas({
 
               {/* ------------- TOOLBAR ------------- */}
               <Toolbar
-                zoom={Math.round(instance.transformState.scale * 100)}
+                zoom={scale * 100}
                 mode={mode}
                 setMode={setMode}
                 zoomIn={zoomInWrapped}
                 zoomOut={zoomOutWrapped}
                 reset={resetWrapped}
-                onSubmit={onSubmit} // Pasa la función para guardar
-                handleExport={handleExport} // Pasa la función para exportar
+                onSubmit={onSubmit}
+                handleExport={handleExport}
+                handleExportSelectedPages={handleExportSelectedPages}
                 setOpenDlg={setOpenDlg}
                 device={device}
                 setDevice={setDevice}
+                pages={pages.map(page => ({
+                  id: page.id,
+                  name: page.name
+                }))}
               />
             </div>
           )
