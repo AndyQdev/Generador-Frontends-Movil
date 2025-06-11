@@ -45,7 +45,7 @@ export default function NewPageDialog({
 
     try {
       /* 1. Crea la página vacía en el backend */
-      const pageData = { name: newName, background_color: '#fff', grid_enabled: true, device_mode: 'mobile', components: [] }
+      const pageData = { name: newName, background_color: '#ffffff', grid_enabled: true, device_mode: 'mobile', components: [] }
       const r = await fetch(`${API_BASEURL}${ENDPOINTS.PROJECTS}/${activeProjectId}/pages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },

@@ -136,7 +136,7 @@ export default function PageFrame({
           backgroundColor: page.background_color ?? '#ffffff'
         }}
         className={cn(
-          'relative shadow-lg border overflow-hidden bg-[#D9D9D9] rounded-3xl',
+          'relative shadow-lg border overflow-hidden bg-white rounded-3xl',
           selected ? 'ring-2 ring-blue-500' : 'border-gray-400'
         )}
         onClick={(e) => {
