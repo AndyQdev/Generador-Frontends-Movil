@@ -1031,8 +1031,8 @@ export default function Editor() {
       const newComponent = {
         ...structuredClone(clipboard),
         id: Date.now().toString(),
-        x: clipboard.x + 10, // Desplazar ligeramente para que sea visible
-        y: clipboard.y + 10
+        x: clipboard.x, // Desplazar ligeramente para que sea visible
+        y: clipboard.y
       }
 
       const updatedPages = structuredClone(pages)
