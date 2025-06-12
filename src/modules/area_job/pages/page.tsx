@@ -1085,6 +1085,50 @@ export default function Editor() {
     }
   }, [activeProject?.pages])
 
+  const handleExportSelectedPages = (selectedPages: string[]) => {
+    // Crear el string de páginas en el formato requerido: page_id,page_id,page_id
+    const pagesString = selectedPages.map(id => `page_${id}`).join(',')
+    
+    // Obtener el token del localStorage
+    const token = localStorage.getItem('token')
+    
+    // Construir la URL con el ID del proyecto y las páginas seleccionadas
+    const url = `${API_BASEURL}/projects/${activeProject?.id}/download-specific?files=${pagesString}`
+    
+    // Realizar la petición con el token
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(response => {
+        // Obtener el nombre del archivo del header Content-Disposition
+        const contentDisposition = response.headers.get('content-disposition')
+        let filename = 'flutter_files.zip' // nombre por defecto
+        
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+          if (filenameMatch) {
+            filename = filenameMatch[1]
+          }
+        }
+        
+        return response.blob().then(blob => ({ blob, filename }))
+      })
+      .then(({ blob, filename }) => {
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = filename // Establecer el nombre del archivo
+        link.click()
+        window.URL.revokeObjectURL(url)
+      })
+      .catch(error => {
+        console.error('Error al descargar:', error)
+        toast.error('Error al descargar las páginas seleccionadas')
+      })
+  }
+
   return (
     <div className="flex flex-col h-screen w-full">
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
@@ -1170,6 +1214,7 @@ export default function Editor() {
         onDrop={handleDrop}
         onSubmit={onSubmit}
         handleExport={handleExport}
+        handleExportSelectedPages={handleExportSelectedPages}
         setOpenDlg={setOpenDlg}
         onDeletePage={handleDeletePage}
         activeLoadingImage={activeLoadingImage}
