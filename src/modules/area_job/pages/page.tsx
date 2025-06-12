@@ -66,6 +66,7 @@ export default function Editor() {
     { label: 'Espacio de Trabajo', path: PrivateRoutes.AREA }
   ])
   const { areaId } = useParams()
+  // const [scale, setScale] = useState(1)
   const [activeProject, setActiveProject] = useState<Project | undefined>(undefined)
   const { resource: project, mutate } = useGetResource<Project>({ endpoint: ENDPOINTS.ULTIMO_PROJECT })
   const { updateResource: updateProject } = useUpdateResource<UpdateProject>(ENDPOINTS.PROJECTS)
@@ -396,7 +397,7 @@ export default function Editor() {
 
     throttledEmit(selectedComponent)
   }, [selectedComponent])
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string, scaleActual: number) => {
     const socket = getSocket()
 
     e.preventDefault()
@@ -404,8 +405,13 @@ export default function Editor() {
     const containerRect = e.currentTarget.getBoundingClientRect()
     const xPercent = ((e.clientX - containerRect.left) / containerRect.width) * 100
     const yPercent = ((e.clientY - containerRect.top) / containerRect.height) * 100
-    const widthPercent = (200 / containerRect.width) * 100
-    const heightPercent = (50 / containerRect.height) * 100
+    // const widthPercent = (200 / containerRect.width) * 100
+    // const heightPercent = (50 / containerRect.height) * 100
+    // const widthPercent = (200 / (containerRect.width * scale)) * 100
+    // const heightPercent = (50 / (containerRect.height * scale)) * 100
+    const widthPercent = ((200* scaleActual) / containerRect.width ) * 100
+    const heightPercent = ((50* scaleActual) / containerRect.height ) * 100
+
 
     const newComponent = (() => {
       switch (type) {
@@ -1088,13 +1094,13 @@ export default function Editor() {
   const handleExportSelectedPages = (selectedPages: string[]) => {
     // Crear el string de páginas en el formato requerido: page_id,page_id,page_id
     const pagesString = selectedPages.map(id => `page_${id}`).join(',')
-    
+
     // Obtener el token del localStorage
     const token = localStorage.getItem('token')
-    
+
     // Construir la URL con el ID del proyecto y las páginas seleccionadas
     const url = `${API_BASEURL}/projects/${activeProject?.id}/download-specific?files=${pagesString}`
-    
+
     // Realizar la petición con el token
     fetch(url, {
       headers: {
@@ -1105,14 +1111,14 @@ export default function Editor() {
         // Obtener el nombre del archivo del header Content-Disposition
         const contentDisposition = response.headers.get('content-disposition')
         let filename = 'flutter_files.zip' // nombre por defecto
-        
+
         if (contentDisposition) {
           const filenameMatch = contentDisposition.match(/filename="(.+)"/)
           if (filenameMatch) {
             filename = filenameMatch[1]
           }
         }
-        
+
         return response.blob().then(blob => ({ blob, filename }))
       })
       .then(({ blob, filename }) => {
@@ -1182,11 +1188,11 @@ export default function Editor() {
                 prev.map(p =>
                   p.id === newPage.id
                     ? {
-                        ...p,
-                        loading: false,
-                        progress: 100,
-                        loadingImage: null
-                      }
+                      ...p,
+                      loading: false,
+                      progress: 100,
+                      loadingImage: null
+                    }
                     : p
                 )
               )

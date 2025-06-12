@@ -127,7 +127,7 @@ export default function PageFrame({
       button: 5, // 5% del alto del dispositivo
       input: 5,
       header: 8,
-      bottomNavigationBar: 8,
+      bottomNavigationBar: 5,
       datatable: 15,
       select: 5,
       checklist: 15,
@@ -276,6 +276,7 @@ export default function PageFrame({
           return (
             <Rnd
               key={comp.id}
+              // key={`${comp.id}-${scale}`}
               size={{
                 width: toPx(comp.width, device.width),
                 height: toPx(comp.height, device.height)
