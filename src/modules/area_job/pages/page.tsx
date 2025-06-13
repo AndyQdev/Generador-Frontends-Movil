@@ -67,6 +67,7 @@ export default function Editor() {
     { label: 'Espacio de Trabajo', path: PrivateRoutes.AREA }
   ])
   const { areaId } = useParams()
+  // const [scale, setScale] = useState(1)
   const [activeProject, setActiveProject] = useState<Project | undefined>(undefined)
   const { resource: project, mutate } = useGetResource<Project>({ endpoint: ENDPOINTS.ULTIMO_PROJECT })
   const { updateResource: updateProject } = useUpdateResource<UpdateProject>(ENDPOINTS.PROJECTS)
@@ -397,7 +398,7 @@ export default function Editor() {
 
     throttledEmit(selectedComponent)
   }, [selectedComponent])
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, pageId: string, scaleActual: number) => {
     const socket = getSocket()
 
     e.preventDefault()
@@ -405,8 +406,13 @@ export default function Editor() {
     const containerRect = e.currentTarget.getBoundingClientRect()
     const xPercent = ((e.clientX - containerRect.left) / containerRect.width) * 100
     const yPercent = ((e.clientY - containerRect.top) / containerRect.height) * 100
-    const widthPercent = (200 / containerRect.width) * 100
-    const heightPercent = (50 / containerRect.height) * 100
+    // const widthPercent = (200 / containerRect.width) * 100
+    // const heightPercent = (50 / containerRect.height) * 100
+    // const widthPercent = (200 / (containerRect.width * scale)) * 100
+    // const heightPercent = (50 / (containerRect.height * scale)) * 100
+    const widthPercent = ((200* scaleActual) / containerRect.width ) * 100
+    const heightPercent = ((50* scaleActual) / containerRect.height ) * 100
+
 
     const newComponent = (() => {
       switch (type) {
@@ -1257,8 +1263,8 @@ export default function Editor() {
       const newComponent = {
         ...structuredClone(clipboard),
         id: Date.now().toString(),
-        x: clipboard.x + 10, // Desplazar ligeramente para que sea visible
-        y: clipboard.y + 10
+        x: clipboard.x, // Desplazar ligeramente para que sea visible
+        y: clipboard.y
       }
 
       const updatedPages = structuredClone(pages)
@@ -1408,11 +1414,11 @@ export default function Editor() {
                 prev.map(p =>
                   p.id === newPage.id
                     ? {
-                        ...p,
-                        loading: false,
-                        progress: 100,
-                        loadingImage: null
-                      }
+                      ...p,
+                      loading: false,
+                      progress: 100,
+                      loadingImage: null
+                    }
                     : p
                 )
               )
