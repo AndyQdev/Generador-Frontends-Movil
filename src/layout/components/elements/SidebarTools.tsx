@@ -1,6 +1,6 @@
 import { type HeaderComponent } from '@/modules/area_job/models/Components'
 import { Button } from '@/components/ui/button'
-import { Home, Search, User, File, Settings, Star, Heart, Plus, Camera, Calendar, Folder, LineChart, Music, Lock, Download,type LucideIcon, X } from 'lucide-react'
+import { Home, Search, User, File, Settings, Star, Heart, Plus, Camera, Calendar, Folder, LineChart, Music, Lock, Download, type LucideIcon, X } from 'lucide-react'
 import React, { useState } from 'react'
 
 interface HeaderToolsProps {
@@ -14,9 +14,7 @@ interface HeaderToolsProps {
 export default function HeaderTools({
   component,
   setComponent,
-  project,
-  openTitleIconPicker,
-  openSectionIconPicker
+  project
 }: HeaderToolsProps) {
   if (!component.sidebar) return <div>Sidebar no disponible</div>
   const sidebar = component.sidebar
@@ -89,7 +87,7 @@ export default function HeaderTools({
       </div>
       <div className="grid grid-cols-2 gap-2 items-center mt-2">
         <button
-          onClick={() => setIconPickerOpen(-1)}
+          onClick={() => { setIconPickerOpen(-1) }}
           className="border rounded flex items-center justify-center bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
         >
           {React.createElement(getIcon(sidebar.titleIcon ?? 'Star'), { size: 20 })}
@@ -147,7 +145,7 @@ export default function HeaderTools({
       {sidebar.sections.map((sec, idx) => (
         <div key={idx} className="grid grid-cols-3 gap-2 items-center mt-2">
           <button
-            onClick={() => setIconPickerOpen(idx)}
+            onClick={() => { setIconPickerOpen(idx) }}
             className="border rounded flex items-center justify-center bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
           >
             {React.createElement(getIcon(sec.icon), { size: 20 })}
@@ -224,7 +222,7 @@ export default function HeaderTools({
             </div>
             <button
               className="mt-4 w-full text-sm text-red-600 hover:underline"
-              onClick={() => setIconPickerOpen(null)}
+              onClick={() => { setIconPickerOpen(null) }}
             >
               Cancelar
             </button>

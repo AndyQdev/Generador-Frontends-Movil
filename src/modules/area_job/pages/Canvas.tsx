@@ -58,7 +58,7 @@ export default function Canvas({
   const [device, setDevice] = useState<Device>(DEVICES[0])
   const api = useRef<ReactZoomPanPinchRef | null>(null)
   const isCtrlPressed = useRef(false)
-  const [scale, setScale] = useState(1)
+  const [, setScale] = useState(1)
 
   // Efecto para manejar el estado de la tecla Ctrl
   useEffect(() => {
@@ -152,7 +152,7 @@ export default function Canvas({
         initialScale={1}
         centerOnInit={true}
         centerZoomedOut={true}
-        onZoom      ={({ state }) => setScale(state.scale)}
+        onZoom ={({ state }) => { setScale(state.scale) }}
         onZoomStart={() => {
           setSelectedComponent(null)
           onSelectPage(null)
@@ -288,4 +288,3 @@ export default function Canvas({
     </div>
   )
 }
-

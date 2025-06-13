@@ -104,50 +104,48 @@ export default function PageFrame({
   const toPx = (pct: number, base: number) => (pct / 100) * base
   const toPct = (px: number, base: number) => (px / base) * 100
 
-  // Función para obtener los tamaños mínimos según el tipo de componente (en porcentaje)
-  const getMinSizeByType = (type: string, device: Device) => {
-    // Valores mínimos en porcentaje del ancho y alto del dispositivo
-    const minWidth = {
-      button: 20, // 15% del ancho del dispositivo
-      input: 20,
-      header: 100, // header siempre ocupa todo el ancho
-      bottomNavigationBar: 100, // bottomNavigationBar siempre ocupa todo el ancho
-      datatable: 30,
-      select: 20,
-      checklist: 30,
-      radiobutton: 25,
-      card: 30,
-      label: 15,
-      textArea: 25,
-      imagen: 20,
-      calendar: 35,
-      search: 20,
-      icon: 5
-    }[type] ?? 10
+  // const getMinSizeByType = (type: string, device: Device) => {
+  //   const minWidth = {
+  //     button: 20,
+  //     input: 20,
+  //     header: 100, // header siempre ocupa todo el ancho
+  //     bottomNavigationBar: 100, // bottomNavigationBar siempre ocupa todo el ancho
+  //     datatable: 30,
+  //     select: 20,
+  //     checklist: 30,
+  //     radiobutton: 25,
+  //     card: 30,
+  //     label: 15,
+  //     textArea: 25,
+  //     imagen: 20,
+  //     calendar: 35,
+  //     search: 20,
+  //     icon: 5
+  //   }[type] ?? 10
 
-    const minHeight = {
-      button: 5, // 5% del alto del dispositivo
-      input: 5,
-      header: 8,
-      bottomNavigationBar: 5,
-      datatable: 15,
-      select: 5,
-      checklist: 15,
-      radiobutton: 15,
-      card: 20,
-      label: 4,
-      textArea: 12,
-      imagen: 20,
-      calendar: 40,
-      search: 5,
-      icon: 5
-    }[type] ?? 5
+  //   const minHeight = {
+  //     button: 5, // 5% del alto del dispositivo
+  //     input: 5,
+  //     header: 8,
+  //     bottomNavigationBar: 5,
+  //     datatable: 15,
+  //     select: 5,
+  //     checklist: 15,
+  //     radiobutton: 15,
+  //     card: 20,
+  //     label: 4,
+  //     textArea: 12,
+  //     imagen: 20,
+  //     calendar: 40,
+  //     search: 5,
+  //     icon: 5
+  //   }[type] ?? 5
 
-    return {
-      width: minWidth,
-      height: minHeight
-    }
-  }
+  //   return {
+  //     width: minWidth,
+  //     height: minHeight
+  //   }
+  // }
 
   return (
     <div className="relative">
@@ -290,8 +288,8 @@ export default function PageFrame({
               scale={scale}
               disableDragging={comp.locked ?? false}
               enableResizing={!comp.locked}
-              //minWidth={toPx(getMinSizeByType(comp.type, device).width, device.width)}
-              //minHeight={toPx(getMinSizeByType(comp.type, device).height, device.height)}
+              // minWidth={toPx(getMinSizeByType(comp.type, device).width, device.width)}
+              // minHeight={toPx(getMinSizeByType(comp.type, device).height, device.height)}
               onClick={() => {
                 if (page.id !== currentPageId) return
                 if (!isDragging && page.id === currentPageId) {
