@@ -97,7 +97,7 @@ export default function Header({ comp, portalRoot }: Props) {
 
         {/* título centrado */}
         <h1 className="flex-1 text-center font-semibold text-lg truncate">
-          {comp.title}
+          {comp.title}hola
         </h1>
 
         {/* placeholder a la derecha para mantener centrado el título */}

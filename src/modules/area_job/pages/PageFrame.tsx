@@ -290,8 +290,8 @@ export default function PageFrame({
               scale={scale}
               disableDragging={comp.locked ?? false}
               enableResizing={!comp.locked}
-              minWidth={toPx(getMinSizeByType(comp.type, device).width, device.width)}
-              minHeight={toPx(getMinSizeByType(comp.type, device).height, device.height)}
+              //minWidth={toPx(getMinSizeByType(comp.type, device).width, device.width)}
+              //minHeight={toPx(getMinSizeByType(comp.type, device).height, device.height)}
               onClick={() => {
                 if (page.id !== currentPageId) return
                 if (!isDragging && page.id === currentPageId) {

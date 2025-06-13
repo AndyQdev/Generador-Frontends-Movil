@@ -488,9 +488,9 @@ export default function Editor() {
               asideBg: '#ffffff',
               select: 0,
               sections: [
-                { icon: 'home', label: 'Inicio', route: '' },
-                { icon: 'file', label: 'Docs', route: '' },
-                { icon: 'cog', label: 'Config', route: '' }
+                { icon: 'Home', label: 'Inicio', route: '' },
+                { icon: 'File', label: 'Docs', route: '' },
+                { icon: 'Cog', label: 'Config', route: '' }
               ]
             }
           }
@@ -508,9 +508,9 @@ export default function Editor() {
             borderRadious: 8,
             locked: true,
             items: [
-              { icon: 'home', label: 'Inicio', route: '', isActive: true },
-              { icon: 'search', label: 'Buscar', route: '', isActive: false },
-              { icon: 'user', label: 'Perfil', route: '', isActive: false }
+              { icon: 'Home', label: 'Inicio', route: '', isActive: true },
+              { icon: 'Search', label: 'Buscar', route: '', isActive: false },
+              { icon: 'User', label: 'Perfil', route: '', isActive: false }
             ]
           }
         case 'select':
@@ -563,11 +563,12 @@ export default function Editor() {
             x: xPercent,
             y: yPercent,
             width: widthPercent,
-            height: heightPercent,
+            height: 15,
             options: ['Opción 1', 'Opción 2', 'Opción 3'],
             selectedOptions: [],
             style: {
               backgroundColor: '#ffffff',
+              borderRadius: 8,
               textStyle: {
                 fontSize: 14,
                 color: '#111827'
