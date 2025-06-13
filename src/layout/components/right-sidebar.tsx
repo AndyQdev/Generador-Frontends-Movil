@@ -5,7 +5,7 @@ import ComponentsSection from './sections/ComponentsSection'
 import ToolsSection from './sections/ToolsSection'
 import BlocksSection from './sections/BlocksSection'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 
 export default function RightSidebar() {
   const { selectedComponent } = useComponentContext()
@@ -52,28 +52,52 @@ export default function RightSidebar() {
   return (
     <div className="relative">
       {/* Botón de colapso */}
-      <div className="absolute top-4 -left-10 z-50">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => { setIsCollapsed(!isCollapsed) }}
-          className="bg-background dark:bg-dark-background-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-l-md shadow-md"
-        >
-          {isCollapsed
-            ? (
+      {isCollapsed && (
+        <div className="absolute top-4 left-[-40px] z-50 lg:left-[-40px] sm:left-[-36px]">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => { setIsCollapsed(false) }}
+            className="bg-background dark:bg-dark-background-primary hover:bg-gray-100 dark:hover:bg-gray-800 rounded-l-md shadow-md"
+          >
             <ChevronLeft className="w-5 h-5 text-light-text-primary dark:text-dark-text-primary" />
-              )
-            : (
-            <ChevronRight className="w-5 h-5 text-light-text-primary dark:text-dark-text-primary" />
-              )}
-        </Button>
-      </div>
+          </Button>
+        </div>
+      )}
 
       <aside
         ref={sidebarRef}
-        style={{ width: isCollapsed ? '0px' : `${width}px` }}
-        className="hidden lg:flex flex-col dark:bg-[#111827] min-w-[0px] h-[100dvh] border-l bg-background overflow-y-auto relative"
+        style={{
+          width: isCollapsed ? '0px' : `${width}px`,
+          transform: isCollapsed ? 'translateX(100%)' : 'translateX(0)',
+          transition: 'transform 0.3s ease-in-out'
+        }}
+        className={`fixed lg:static right-0 top-0 h-full z-40 bg-background dark:bg-[#111827] border-l overflow-y-auto flex flex-col ${
+          isCollapsed ? 'pointer-events-none' : ''
+        }`}
       >
+        {!isCollapsed && (
+          <div className="absolute -top-2 -right-3 z-50">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => { setIsCollapsed(true) }}
+              className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+            >
+              <span className="sr-only">Cerrar sidebar</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5 text-light-text-primary dark:text-dark-text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          </div>
+        )}
         {/* Resizer - siempre presente pero solo funcional cuando no está colapsado */}
         <div
           ref={resizerRef}

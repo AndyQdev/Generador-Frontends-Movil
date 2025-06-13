@@ -10,7 +10,7 @@ import { type Dispatch, type SetStateAction } from 'react'
 import { type ApiResponse } from '@models/index'
 import { Popover, PopoverContent, PopoverTrigger } from '@radix-ui/react-popover'
 import { cn } from '@/lib/utils'
-import { useGetResource } from '@/hooks/useApiResource'
+import { useGetResource, useGetAllResource } from '@/hooks/useApiResource'
 import { type User } from '../models/user.model'
 import { ENDPOINTS } from '@/utils'
 import { CheckCheckIcon, ChevronsUpDownIcon, X } from 'lucide-react'
@@ -23,7 +23,7 @@ import { type KeyedMutator } from 'swr'
 import { PrivateRoutes } from '@/models/routes.model'
 import { useNavigate } from 'react-router-dom'
 import { DEVICES } from '@/modules/area_job/utils/devices'
-import { useGetAllResource } from '@/hooks/useApiResource'
+
 import { type Project } from '../models/project.model'
 // import { useCreateResource } from '@/hooks/useApiResource'
 // import { CreateUser } from '../../models/user.model'
@@ -50,9 +50,6 @@ interface IUserFormProps {
 }
 
 const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
-  // const { createResource: createUser } = useCreateResource<CreateUser>({ endpoint: ENDPOINTS.USERS })
-  // const { allResource: allRoles } = useGetAllResource<Role>({ endpoint: ENDPOINTS.ROLE })
-  // const { allResource: branches } = useGetAllResource<Branch>({ endpoint: ENDPOINTS.BRANCH })
   const userStorage = JSON.parse(localStorage.getItem('user') ?? '{}')
   const { resource: user } = useGetResource<User>({ endpoint: ENDPOINTS.USER, id: String(userStorage.id) })
   const { allResource: projects } = useGetAllResource<Project>({ endpoint: ENDPOINTS.PROJECTS })
@@ -82,14 +79,17 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
         formData.append('resolution_w', String(selectedDevice.width))
         formData.append('resolution_h', String(selectedDevice.height))
       }
-      if (data.archivoXml?.[0]) { // Porque Input file devuelve array de files
+      if (data.archivoXml?.[0]) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        formData.append('archivo_xml', data.archivoXml[0])
+        formData.append('file', data.archivoXml[0]) // ✅ CAMBIO: este es el nombre correcto
       }
       if (data.imagenBoceto?.[0]) { // 🆕
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         formData.append('imagen_boceto', data.imagenBoceto[0])
       }
+      setOpenModal?.(false)
+
+      const toastId = toast.loading('Procesando documento...')
       const response = await fetch(`${import.meta.env.VITE_API_URL}${ENDPOINTS.PROJECTS}`, {
         method: 'POST',
         headers: {
@@ -99,14 +99,15 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
       })
 
       if (!response.ok) {
+        toast.dismiss(toastId)
         throw new Error('Error al crear proyecto')
       }
 
-      toast.success('Proyecto creado exitosamente')
+      // ✅ Todo bien: actualizar el toast y redirigir
+      toast.success('Proyecto creado exitosamente', { id: toastId })
       setTimeout(() => {
         navigate(`${PrivateRoutes.AREA}`, { replace: true })
       }, 1000)
-      setOpenModal?.(false)
     } catch (error) {
       console.error(error)
       toast.error('Error al crear proyecto')
@@ -287,6 +288,23 @@ const UserFormDialog = ({ setOpenModal }: IUserFormProps) => {
                         ))}
                       </select>
                     </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="archivoXml"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Archivo Word o PDF</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept=".docx,.pdf"
+                        onChange={(e) => { field.onChange(e.target.files) }}
+                      />
+                    </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

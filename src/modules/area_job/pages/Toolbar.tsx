@@ -42,6 +42,7 @@ export default function Toolbar({
 
   return (
     <div className="fixed left-1/2 -translate-x-1/2 bottom-4 bg-neutral-800/90 backdrop-blur text-white rounded-full px-4 py-2 flex items-center shadow-lg">
+    {/* <div className="fixed left-1/2 -translate-x-1/2 bottom-4 bg-neutral-800/90 backdrop-blur text-white rounded-full px-2 py-1 flex items-center shadow-lg overflow-x-auto max-w-[95vw] sm:px-4 sm:py-2 no-scrollbar"> */}
       {/* Modo selección */}
       <button
         onClick={() => { setMode('select') }}
@@ -101,14 +102,14 @@ export default function Toolbar({
       {/* Exportar */}
       <div className="relative">
         <button
-          onClick={() => setShowExportMenu(!showExportMenu)}
+          onClick={() => { setShowExportMenu(!showExportMenu) }}
           className="p-2 rounded-full transition hover:bg-neutral-500 flex items-center gap-2"
           title="Exportar proyecto"
         >
           <Download size={18} />
           <ChevronDown size={14} />
         </button>
-        
+
         {showExportMenu && (
           <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-neutral-800 rounded-lg shadow-lg py-2 min-w-[200px]">
             <button
@@ -143,9 +144,9 @@ export default function Toolbar({
         <FilePlus size={18} />
       </button>
        {/* === SELECT DISPOSITIVO === */}
-      <div className="w-px h-6 bg-white/20 mx-2" />
+      <div className="hidden sm:block w-px h-6 bg-white/20 mx-2" />
       <select
-        className="text-white bg-[#3a3a3a] text-sm rounded px-2 py-1 outline-none"
+        className="hidden sm:block text-white bg-[#3a3a3a] text-sm rounded px-2 py-1 outline-none"
         value={device.id}
         onChange={(e) => {
           const d = DEVICES.find(dev => dev.id === e.target.value)!

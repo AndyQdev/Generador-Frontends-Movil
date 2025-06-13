@@ -96,58 +96,63 @@ const Header = () => {
       </Sheet>
       <div className="w-full flex-1">
         <div className="w-full flex-1 flex items-center justify-between">
-          <Breadcrumb>
-            <BreadcrumbList>
-              {breadcrumb.map((item, index) => (
-                item.path
-                  ? (
-                    <div className="flex items-center sm:gap-2" key={index}>
-                      <BreadcrumbItem>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div>
-                                <Link
-                                  to={item.path}
-                                  className={`${(!projects || projects.length === 0) && item.path === PrivateRoutes.AREA
+
+          {/* 🧭 Ocultar breadcrumb en móvil */}
+          <div className="hidden md:block">
+            <Breadcrumb>
+              <BreadcrumbList>
+                {breadcrumb.map((item, index) => (
+                  item.path
+                    ? (
+                      <div className="flex items-center sm:gap-2" key={index}>
+                        <BreadcrumbItem>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div>
+                                  <Link
+                                    to={item.path}
+                                    className={`${(!projects || projects.length === 0) && item.path === PrivateRoutes.AREA
                                       ? 'opacity-50 cursor-not-allowed pointer-events-none'
                                       : ''
                                     }`}
-                                >
-                                  {item.label}
-                                </Link>
-                              </div>
-                            </TooltipTrigger>
-                            {(!projects || projects.length === 0) && item.path === PrivateRoutes.AREA && (
-                              <TooltipContent>
-                                <p>Necesitas crear al menos un proyecto para acceder al Espacio de Trabajo</p>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        </TooltipProvider>
+                                  >
+                                    {item.label}
+                                  </Link>
+                                </div>
+                              </TooltipTrigger>
+                              {(!projects || projects.length === 0) && item.path === PrivateRoutes.AREA && (
+                                <TooltipContent>
+                                  <p>Necesitas crear al menos un proyecto para acceder al Espacio de Trabajo</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                      </div>
+                      )
+                    : (
+                      <BreadcrumbItem key={index}>
+                        <BreadcrumbPage className="text-light-primary font-semibold">{item.label}</BreadcrumbPage>
                       </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                    </div>
-                    )
-                  : (
-                    <BreadcrumbItem key={index}>
-                      <BreadcrumbPage className="text-light-primary font-semibold">{item.label}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                    )
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
+                      )
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
 
+          {/* 🏷️ Ocultar título en móvil */}
           {getTitle() && (
-            <div className="flex-1 flex justify-center">
+            <div className="hidden md:flex flex-1 justify-center">
               <div className="text-xl font-semibold text-gray-600 dark:text-gray-300">
                 {getTitle()}
               </div>
             </div>
           )}
         </div>
-
       </div>
+
       <div className="flex items-center gap-2">
         <TooltipProvider>
           {users && users.length > 0

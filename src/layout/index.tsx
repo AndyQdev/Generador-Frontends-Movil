@@ -22,7 +22,7 @@ const Layout = () => {
 
       {/* --- ChatSidebar solo visible en área de trabajo --- */}
       {isCanvasRoute && isChatOpen && (
-        <div className="relative z-30">
+        <div className="relative z-30 hidden lg:block">
           <ChatSidebar onClose={() => { setIsChatOpen(false) }} />
         </div>
       )}

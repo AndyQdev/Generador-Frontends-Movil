@@ -410,9 +410,8 @@ export default function Editor() {
     // const heightPercent = (50 / containerRect.height) * 100
     // const widthPercent = (200 / (containerRect.width * scale)) * 100
     // const heightPercent = (50 / (containerRect.height * scale)) * 100
-    const widthPercent = ((200* scaleActual) / containerRect.width ) * 100
-    const heightPercent = ((50* scaleActual) / containerRect.height ) * 100
-
+    const widthPercent = ((200 * scaleActual) / containerRect.width) * 100
+    const heightPercent = ((50 * scaleActual) / containerRect.height) * 100
 
     const newComponent = (() => {
       switch (type) {
@@ -1414,11 +1413,11 @@ export default function Editor() {
                 prev.map(p =>
                   p.id === newPage.id
                     ? {
-                      ...p,
-                      loading: false,
-                      progress: 100,
-                      loadingImage: null
-                    }
+                        ...p,
+                        loading: false,
+                        progress: 100,
+                        loadingImage: null
+                      }
                     : p
                 )
               )
