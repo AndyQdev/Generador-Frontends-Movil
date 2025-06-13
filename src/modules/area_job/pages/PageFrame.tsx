@@ -22,6 +22,8 @@ import Imagen from './components/Imagen'
 import Calendar from './components/Calendar'
 import Search from './components/Search'
 import Icon from './components/Icon'
+import Login from './components/Login'
+import Formulario from './components/Formulario'
 
 interface PageFrameProps {
   userSelections: Array<{
@@ -401,6 +403,10 @@ export default function PageFrame({
                         return <Search comp={comp} />
                       case 'icon':
                         return <Icon comp={comp} />
+                      case 'login':
+                        return <Login comp={comp} />
+                      case 'formulario':
+                        return <Formulario comp={comp} />
                       default:
                         return <div>Componente no soportado</div>
                     }

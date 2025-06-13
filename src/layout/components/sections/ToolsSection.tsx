@@ -27,6 +27,8 @@ import ImagenTools from '../elements/ImagenTools'
 import SearchTools from '../elements/SearchTools'
 import CalendarTools from '../elements/CalendarTools'
 import IconTools from '../elements/Icons'
+import LoginTools from '../elements/LoginTools'
+import FormularioTools from '../elements/Formulario'
 
 export default function ToolsSection() {
   const [isHerramientaOpen, setIsHerramientaOpen] = useState(true)
@@ -256,6 +258,26 @@ export default function ToolsSection() {
             />
           )}
         </div>
+        {selectedComponent.type === 'login' && project && (
+          <div className="space-y-3">
+            <LoginTools
+              component={selectedComponent}
+              setComponent={setSelectedComponent}
+              project={project}
+            />
+            <div className="h-96" />
+          </div>
+        )}
+        {selectedComponent.type === 'formulario' && project && (
+          <div className="space-y-3">
+            <FormularioTools
+              component={selectedComponent}
+              setComponent={setSelectedComponent}
+              project={project}
+            />
+            <div className="h-96" />
+          </div>
+        )}
       </CollapsibleContent>
     </Collapsible>
   )

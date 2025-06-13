@@ -12,7 +12,7 @@ import Canvas from './Canvas'
 import { useParams } from 'react-router-dom'
 import { connectSocket, getSocket } from '@/lib/socket'
 import throttle from 'lodash.throttle'
-import { type CardComponent, type BottomNavigationBarComponent, type ButtonComponent, type CheckListComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent, type TextAreaComponent, type ImagenComponent, type CalendarComponent, type IconComponent } from '../models/Components'
+import { type CardComponent, type BottomNavigationBarComponent, type ButtonComponent, type CheckListComponent, type DataTableComponent, type HeaderComponent, type InputComponent, type LabelComponent, type ListarComponent, type LoginComponent, type PaginationComponent, type RadioButtonComponent, type SearchComponent, type SelectComponent, type SidebarComponent, type TextAreaComponent, type ImagenComponent, type CalendarComponent, type IconComponent, type FormularioComponent } from '../models/Components'
 import { useProjectUsers } from '@/context/ProjectUsersContext'
 import NewPageDialog from './NewPageDialog'
 
@@ -36,6 +36,7 @@ export type ComponentItem =
   | ImagenComponent
   | CalendarComponent
   | IconComponent
+  | FormularioComponent
 
 interface Page {
   id: string
@@ -359,10 +360,10 @@ export default function Editor() {
       loading: 'Guardando Cambios...',
       success: () => {
         if (mutate) {
-          void mutate() // solo si quieres mutar la lista general
+          void mutate()
         }
         if (mutateId) {
-          void mutateId() // solo si quieres mutar el proyecto específico
+          void mutateId()
         }
         return 'Cambios guardados exitosamente'
       },
@@ -722,6 +723,231 @@ export default function Editor() {
               textStyle: {
                 fontSize: 14,
                 color: '#111827'
+              }
+            }
+          }
+        case 'login': {
+          const baseId = Date.now().toString()
+          return {
+            id: baseId,
+            type: 'login',
+            x: xPercent,
+            y: yPercent,
+            width: (300 / containerRect.width) * 100,
+            height: (300 / containerRect.height) * 100,
+            card: {
+              id: baseId + '-card',
+              type: 'card',
+              title: 'Iniciar sesión',
+              content: '',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 100,
+              style: {
+                backgroundColor: '#ffffff',
+                borderRadius: 12,
+                padding: {
+                  top: 20,
+                  bottom: 20,
+                  left: 20,
+                  right: 20
+                }
+              }
+            },
+            label: {
+              id: baseId + '-label',
+              type: 'label',
+              text: 'Bienvenido, por favor inicia sesión',
+              x: 10,
+              y: 10,
+              width: 80,
+              height: 6,
+              style: {
+                textStyle: {
+                  fontSize: 16,
+                  fontWeight: 'medium',
+                  color: '#111827'
+                }
+              }
+            },
+            inputs: [
+              {
+                id: baseId + '-email',
+                type: 'input',
+                placeholder: 'Correo electrónico',
+                value: '',
+                x: 10,
+                y: 20,
+                width: 80,
+                height: 8,
+                style: {
+                  backgroundColor: '#f9fafb',
+                  borderRadius: 6,
+                  padding: {
+                    top: 6,
+                    bottom: 6,
+                    left: 10,
+                    right: 10
+                  },
+                  textStyle: {
+                    fontSize: 14,
+                    color: '#111827'
+                  }
+                }
+              },
+              {
+                id: baseId + '-password',
+                type: 'input',
+                placeholder: 'Contraseña',
+                value: '',
+                x: 10,
+                y: 32,
+                width: 80,
+                height: 8,
+                style: {
+                  backgroundColor: '#f9fafb',
+                  borderRadius: 6,
+                  padding: {
+                    top: 6,
+                    bottom: 6,
+                    left: 10,
+                    right: 10
+                  },
+                  textStyle: {
+                    fontSize: 14,
+                    color: '#111827'
+                  }
+                }
+              }
+            ],
+            button: {
+              id: baseId + '-button',
+              type: 'button',
+              label: 'Ingresar',
+              x: 10,
+              y: 48,
+              width: 80,
+              height: 8,
+              style: {
+                backgroundColor: '#2563eb',
+                borderRadius: 8,
+                padding: {
+                  top: 8,
+                  bottom: 8,
+                  left: 12,
+                  right: 12
+                },
+                textStyle: {
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  color: '#ffffff'
+                }
+              }
+            }
+          }
+        }
+        case 'formulario':
+          // eslint-disable-next-line no-case-declarations
+          const timestamp = Date.now().toString()
+          return {
+            id: timestamp,
+            type: 'formulario',
+            x: xPercent,
+            y: yPercent,
+            width: widthPercent + 30,
+            height: heightPercent + 40,
+            style: {
+              backgroundColor: '#ffffff',
+              borderRadius: 12,
+              padding: {
+                top: 16,
+                bottom: 16,
+                left: 16,
+                right: 16
+              }
+            },
+            title: {
+              id: timestamp + '-label',
+              type: 'label',
+              text: 'Formulario de contacto',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 6,
+              style: {
+                textStyle: {
+                  fontSize: 20,
+                  fontWeight: 'bold',
+                  color: '#111827'
+                }
+              }
+            },
+            fields: [
+              {
+                id: timestamp + '-input',
+                type: 'input',
+                placeholder: 'Tu nombre',
+                x: 0,
+                y: 8,
+                width: 100,
+                height: 8,
+                style: {
+                  backgroundColor: '#ffffff',
+                  borderRadius: 6,
+                  padding: {
+                    top: 6, bottom: 6, left: 10, right: 10
+                  },
+                  textStyle: {
+                    fontSize: 14,
+                    color: '#111827'
+                  }
+                }
+              },
+              {
+                id: timestamp + '-select',
+                type: 'select',
+                label: 'País',
+                options: ['Bolivia', 'Perú', 'Chile'],
+                x: 0,
+                y: 18,
+                width: 100,
+                height: 8,
+                style: {
+                  backgroundColor: '#ffffff',
+                  borderRadius: 6,
+                  padding: {
+                    top: 6, bottom: 6, left: 10, right: 10
+                  },
+                  textStyle: {
+                    fontSize: 14,
+                    color: '#111827'
+                  }
+                }
+              }
+            ],
+            button: {
+              id: timestamp + '-btn',
+              type: 'button',
+              label: 'Enviar',
+              x: 0,
+              y: 30,
+              width: 100,
+              height: 8,
+              style: {
+                backgroundColor: '#2563eb',
+                borderRadius: 8,
+                padding: {
+                  top: 8,
+                  bottom: 8,
+                  left: 12,
+                  right: 12
+                },
+                textStyle: {
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  color: '#ffffff'
+                }
               }
             }
           }
@@ -1088,13 +1314,13 @@ export default function Editor() {
   const handleExportSelectedPages = (selectedPages: string[]) => {
     // Crear el string de páginas en el formato requerido: page_id,page_id,page_id
     const pagesString = selectedPages.map(id => `page_${id}`).join(',')
-    
+
     // Obtener el token del localStorage
     const token = localStorage.getItem('token')
-    
+
     // Construir la URL con el ID del proyecto y las páginas seleccionadas
     const url = `${API_BASEURL}/projects/${activeProject?.id}/download-specific?files=${pagesString}`
-    
+
     // Realizar la petición con el token
     fetch(url, {
       headers: {
@@ -1105,14 +1331,14 @@ export default function Editor() {
         // Obtener el nombre del archivo del header Content-Disposition
         const contentDisposition = response.headers.get('content-disposition')
         let filename = 'flutter_files.zip' // nombre por defecto
-        
+
         if (contentDisposition) {
           const filenameMatch = contentDisposition.match(/filename="(.+)"/)
           if (filenameMatch) {
             filename = filenameMatch[1]
           }
         }
-        
+
         return response.blob().then(blob => ({ blob, filename }))
       })
       .then(({ blob, filename }) => {

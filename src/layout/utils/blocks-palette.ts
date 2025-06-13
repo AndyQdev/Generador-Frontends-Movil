@@ -3,8 +3,8 @@ import { SquareMousePointerIcon } from 'lucide-react'
 
 export const BLOCKS = [
   {
-    id: 'listar',
-    label: 'CRUD',
+    id: 'formulario',
+    label: 'Formulario',
     icon: SquareMousePointerIcon,
     color: 'white'
   },

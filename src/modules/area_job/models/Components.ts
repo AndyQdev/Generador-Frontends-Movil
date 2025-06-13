@@ -19,8 +19,29 @@ export interface ComponentStyle {
   textStyle?: {
     fontSize?: number
     fontWeight?: 'normal' | 'bold' | 'medium' | 'light'
-    color?: string // Hex color
+    color?: string
   }
+}
+
+export interface Section {
+  icon: string
+  label: string
+  route: string
+}
+export interface SidebarComponent extends BaseComponent {
+  type: 'sidebar'
+  title: string
+  titleIcon?: string
+  mainColor?: string
+  asideBg?: string
+  select?: number
+  sections: Section[]
+}
+export interface HeaderComponent extends BaseComponent {
+  type: 'header'
+  title: string
+  color?: string
+  sidebar?: SidebarComponent
 }
 export interface DataTableComponent extends BaseComponent {
   type: 'datatable'
@@ -59,6 +80,39 @@ export interface ImagenComponent extends BaseComponent {
   src: string // URL o base64 de la imagen
   style?: ComponentStyle
 }
+export interface FormularioComponent extends BaseComponent {
+  type: 'formulario'
+  title: LabelComponent
+  fields: Array<InputComponent | SelectComponent | LabelComponent | CheckListComponent | RadioButtonComponent | TextAreaComponent | CalendarComponent>
+  button: ButtonComponent
+  style?: ComponentStyle
+}
+export interface LoginComponent extends BaseComponent {
+  type: 'login'
+  card: CardComponent
+  label: LabelComponent
+  inputs: [InputComponent, InputComponent] // email y password
+  button: ButtonComponent
+}
+
+export interface CardComponent extends BaseComponent {
+  type: 'card'
+  title: string
+  content: string
+  style?: ComponentStyle
+}
+
+export interface LabelComponent extends BaseComponent {
+  type: 'label'
+  text: string
+  style?: ComponentStyle
+}
+export interface InputComponent extends BaseComponent {
+  type: 'input'
+  placeholder?: string
+  value?: string
+  style?: ComponentStyle
+}
 export interface ButtonComponent extends BaseComponent {
   type: 'button'
   label: string
@@ -88,47 +142,6 @@ export interface RadioButtonComponent extends BaseComponent {
   selectedOption?: string
   style?: ComponentStyle
 }
-export interface CardComponent extends BaseComponent {
-  type: 'card'
-  title: string
-  content: string
-  style?: ComponentStyle
-}
-
-export interface LabelComponent extends BaseComponent {
-  type: 'label'
-  text: string
-  style?: ComponentStyle
-}
-export interface InputComponent extends BaseComponent {
-  type: 'input'
-  placeholder?: string
-  value?: string
-  style?: ComponentStyle
-}
-
-export interface Section {
-  icon: string
-  label: string
-  route: string
-}
-
-export interface SidebarComponent extends BaseComponent {
-  type: 'sidebar'
-  title: string
-  titleIcon?: string
-  mainColor?: string
-  asideBg?: string
-  select?: number
-  sections: Section[]
-}
-
-export interface HeaderComponent extends BaseComponent {
-  type: 'header'
-  title: string
-  color?: string
-  sidebar?: SidebarComponent
-}
 
 export interface PaginationComponent extends BaseComponent {
   type: 'pagination'
@@ -155,18 +168,6 @@ export interface ListarComponent extends Omit<BaseComponent, 'label'> {
   dialog: DialogComponent
 }
 
-export interface LoginComponent extends Omit<BaseComponent, 'label'> {
-  type: 'login'
-  card: CardComponent
-  title: LabelComponent
-  subtitle: LabelComponent
-  emailInput: InputComponent
-  passwordInput: InputComponent
-  loginButton: ButtonComponent
-  googleButton: ButtonComponent
-  signupLink: LabelComponent
-}
-// ────────────── Navegación Inferior ──────────────
 export interface BottomNavItem {
   icon: string
   label: string
