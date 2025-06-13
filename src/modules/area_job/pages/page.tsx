@@ -564,11 +564,12 @@ export default function Editor() {
             x: xPercent,
             y: yPercent,
             width: widthPercent,
-            height: heightPercent,
+            height: 15,
             options: ['Opción 1', 'Opción 2', 'Opción 3'],
             selectedOptions: [],
             style: {
               backgroundColor: '#ffffff',
+              borderRadius: 8,
               textStyle: {
                 fontSize: 14,
                 color: '#111827'
