@@ -1,5 +1,7 @@
 import { type HeaderComponent } from '@/modules/area_job/models/Components'
 import { Button } from '@/components/ui/button'
+import { Home, Search, User, File, Settings, Star, Heart, Plus, Camera, Calendar, Folder, LineChart, Music, Lock, Download,type LucideIcon, X } from 'lucide-react'
+import React, { useState } from 'react'
 
 interface HeaderToolsProps {
   component: HeaderComponent
@@ -19,12 +21,30 @@ export default function HeaderTools({
   if (!component.sidebar) return <div>Sidebar no disponible</div>
   const sidebar = component.sidebar
 
-  // const updateSidebar = (updates: Partial<typeof sidebar>) => {
-  //   setComponent({
-  //     ...component,
-  //     sidebar: { ...component.sidebar, ...updates }
-  //   })
-  // }
+  const [iconPickerOpen, setIconPickerOpen] = useState<number | null>(null)
+  const iconList = ['Home', 'File', 'Settings', 'Star', 'Search', 'User', 'Heart', 'Plus', 'Camera', 'Calendar', 'Folder', 'LineChart', 'Music', 'Lock', 'Download', 'X']
+
+  const getIcon = (iconName: string): LucideIcon => {
+    const icons: Record<string, LucideIcon> = {
+      Home,
+      Search,
+      User,
+      File,
+      Settings,
+      Star,
+      Heart,
+      Plus,
+      Camera,
+      Calendar,
+      Folder,
+      LineChart,
+      Music,
+      Lock,
+      Download,
+      X
+    }
+    return icons[iconName] || Star
+  }
 
   const updateSidebar = (updates: Partial<typeof sidebar>) => {
     setComponent({
@@ -69,10 +89,10 @@ export default function HeaderTools({
       </div>
       <div className="grid grid-cols-2 gap-2 items-center mt-2">
         <button
-          onClick={openTitleIconPicker}
+          onClick={() => setIconPickerOpen(-1)}
           className="border rounded flex items-center justify-center bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
         >
-          <i className={`fa fa-${sidebar.titleIcon ?? 'star'} text-lg`}></i>
+          {React.createElement(getIcon(sidebar.titleIcon ?? 'Star'), { size: 20 })}
         </button>
         <input
           value={sidebar.title}
@@ -127,10 +147,10 @@ export default function HeaderTools({
       {sidebar.sections.map((sec, idx) => (
         <div key={idx} className="grid grid-cols-3 gap-2 items-center mt-2">
           <button
-            onClick={() => { openSectionIconPicker(idx) }}
+            onClick={() => setIconPickerOpen(idx)}
             className="border rounded flex items-center justify-center bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
           >
-            <i className={`fa fa-${sec.icon} text-lg`}></i>
+            {React.createElement(getIcon(sec.icon), { size: 20 })}
           </button>
           <input
             value={sec.label}
@@ -167,7 +187,7 @@ export default function HeaderTools({
             updateSidebar({
               sections: [
                 ...sidebar.sections,
-                { icon: 'star', label: 'Nueva', route: '' }
+                { icon: 'Star', label: 'Nueva', route: '' }
               ]
             })
           }}
@@ -176,6 +196,41 @@ export default function HeaderTools({
           + Agregar sección
         </Button>
       </div>
+
+      {/* Diálogo de selección de iconos */}
+      {iconPickerOpen !== null && (
+        <div className="fixed inset-0 z-[9999] bg-black/40 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg w-[320px] max-h-[70vh] overflow-y-auto shadow-lg">
+            <h3 className="text-sm font-semibold mb-3">Seleccionar icono</h3>
+            <div className="grid grid-cols-4 gap-2">
+              {iconList.map((ic) => (
+                <button
+                  key={ic}
+                  onClick={() => {
+                    if (iconPickerOpen === -1) {
+                      updateSidebar({ titleIcon: ic })
+                    } else {
+                      const updated = [...sidebar.sections]
+                      updated[iconPickerOpen].icon = ic
+                      updateSidebar({ sections: updated })
+                    }
+                    setIconPickerOpen(null)
+                  }}
+                  className="w-12 h-12 grid place-items-center border rounded hover:bg-primary/10"
+                >
+                  {React.createElement(getIcon(ic), { size: 20 })}
+                </button>
+              ))}
+            </div>
+            <button
+              className="mt-4 w-full text-sm text-red-600 hover:underline"
+              onClick={() => setIconPickerOpen(null)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

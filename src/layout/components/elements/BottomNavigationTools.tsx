@@ -1,6 +1,7 @@
 import { type BottomNavigationBarComponent } from '@/modules/area_job/models/Components'
 import { type Project } from '@/modules/projects/models/project.model'
 import { useState } from 'react'
+import { Home, Search, User, Star, Heart, Settings, Plus, Camera, Calendar, File, Folder, LineChart, Music, Lock, Download, type LucideIcon } from 'lucide-react'
 
 interface Props {
   component: BottomNavigationBarComponent
@@ -11,10 +12,31 @@ interface Props {
 export default function BottomNavigationTools({ component, setComponent, project }: Props) {
   /* ─ Picker local de iconos ───────────────────────────── */
   const iconList = [
-    'home','search','user','star','heart','cog','plus','camera','calendar',
-    'file','folder','chart-line','music','lock','download'
+    'Home', 'Search', 'User', 'Star', 'Heart', 'Settings', 'Plus', 'Camera', 'Calendar',
+    'File', 'Folder', 'LineChart', 'Music', 'Lock', 'Download'
   ]
   const [iconDlgIdx, setIconDlgIdx] = useState<number | null>(null)
+
+  const getIcon = (iconName: string): LucideIcon => {
+    const icons: Record<string, LucideIcon> = {
+      Home,
+      Search,
+      User,
+      Star,
+      Heart,
+      Settings,
+      Plus,
+      Camera,
+      Calendar,
+      File,
+      Folder,
+      LineChart,
+      Music,
+      Lock,
+      Download
+    }
+    return icons[iconName] || Home
+  }
 
   return (
     <div className="space-y-4">
@@ -82,14 +104,16 @@ export default function BottomNavigationTools({ component, setComponent, project
       <div className="space-y-2">
         <label className="font-medium text-sm">Ítems:</label>
 
-        {component.items.map((it, idx) => (
+        {component.items.map((it, idx) => {
+          const Icon = getIcon(it.icon)
+          return (
           <div key={idx} className="grid grid-cols-[auto_auto_1fr_auto] gap-2 items-center mt-2">
             {/* Icono con picker local */}
             <button
               onClick={() => setIconDlgIdx(idx)}
               className="w-9 h-9 grid place-items-center border rounded bg-gray-50 hover:bg-gray-100"
             >
-              <i className={`fa fa-${it.icon}`} />
+                <Icon size={18} />
             </button>
 
             {/* Label */}
@@ -119,13 +143,14 @@ export default function BottomNavigationTools({ component, setComponent, project
               ))}
             </select>
           </div>
-        ))}
+          )
+        })}
 
         <button
           onClick={() =>
             setComponent({
               ...component,
-              items: [...component.items, { icon: 'star', label: 'Nuevo', route: '' }]
+              items: [...component.items, { icon: 'Star', label: 'Nuevo', route: '' }]
             })
           }
           className="text-xs text-blue-600 hover:underline"
@@ -140,7 +165,9 @@ export default function BottomNavigationTools({ component, setComponent, project
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg w-[320px] max-h-[70vh] overflow-y-auto shadow-lg">
             <h3 className="text-sm font-semibold mb-3">Seleccionar icono</h3>
             <div className="grid grid-cols-5 gap-2">
-              {iconList.map((ic) => (
+              {iconList.map((ic) => {
+                const Icon = getIcon(ic)
+                return (
                 <button
                   key={ic}
                   onClick={() => {
@@ -151,9 +178,10 @@ export default function BottomNavigationTools({ component, setComponent, project
                   }}
                   className="w-12 h-12 grid place-items-center border rounded hover:bg-primary/10"
                 >
-                  <i className={`fa fa-${ic}`} />
+                    <Icon size={20} />
                 </button>
-              ))}
+                )
+              })}
             </div>
             <button
               className="mt-4 w-full text-sm text-red-600 hover:underline"

@@ -1,5 +1,6 @@
 import { type BottomNavigationBarComponent } from '../../models/Components'
 import { cn } from '@/lib/utils'
+import { Home, Search, User, Star, Heart, Settings, Plus, Camera, Calendar, File, Folder, LineChart, Music, Lock, Download, type LucideIcon } from 'lucide-react'
 
 export default function BottomNavigationBar({ comp }: { comp: BottomNavigationBarComponent }) {
   const {
@@ -10,6 +11,27 @@ export default function BottomNavigationBar({ comp }: { comp: BottomNavigationBa
     items
   } = comp
 
+  const getIcon = (iconName: string): LucideIcon => {
+    const icons: Record<string, LucideIcon> = {
+      Home,
+      Search,
+      User,
+      Star,
+      Heart,
+      Settings,
+      Plus,
+      Camera,
+      Calendar,
+      File,
+      Folder,
+      LineChart,
+      Music,
+      Lock,
+      Download
+    }
+    return icons[iconName] || Home
+  }
+
   return (
     <nav
       className={cn(
@@ -18,17 +40,20 @@ export default function BottomNavigationBar({ comp }: { comp: BottomNavigationBa
       )}
       style={{ backgroundColor, borderRadius }} // ◀️
     >
-      {items.map((item, idx) => (
+      {items.map((item, idx) => {
+        const Icon = getIcon(item.icon)
+        return (
         <button
           key={idx}
           disabled
           className="flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium"
           style={{ color: item.isActive ? activeColor : inactiveColor }}
         >
-          <i className={`fa fa-${item.icon} text-lg`} />
+            <Icon size={20} />
           {item.label}
         </button>
-      ))}
+        )
+      })}
     </nav>
   )
 }

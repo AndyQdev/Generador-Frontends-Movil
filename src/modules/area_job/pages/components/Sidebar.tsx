@@ -1,6 +1,8 @@
 // components/preview/Sidebar.tsx
 import { cn } from '@/lib/utils'
 import { type SidebarComponent } from '../../models/Components'
+import { Home, File, Settings, Star, X, type LucideIcon, Search, User, Heart, Plus, Camera, Calendar, Folder, LineChart, Music, Lock, Download } from 'lucide-react'
+import React from 'react'
 
 export default function Sidebar({
   comp,
@@ -13,7 +15,29 @@ export default function Sidebar({
 }) {
   const mainColor = comp.mainColor ?? '#a855f7'
   const asideBg = comp.asideBg ?? '#ffffff'
-  const titleIcon = comp.titleIcon ?? 'star'
+  const titleIcon = comp.titleIcon ?? 'Star'
+
+  const getIcon = (iconName: string): LucideIcon => {
+    const icons: Record<string, LucideIcon> = {
+      Home,
+      File,
+      Settings,
+      Star,
+      X,
+      Search,
+      User,
+      Heart,
+      Plus,
+      Camera,
+      Calendar,
+      Folder,
+      LineChart,
+      Music,
+      Lock,
+      Download
+    }
+    return icons[iconName] || Star
+  }
 
   return (
     <aside
@@ -31,7 +55,7 @@ export default function Sidebar({
       {/* ╭─ Header ────────────────────────────────╮ */}
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <div className="flex items-center gap-2">
-          <i className={`fa fa-${titleIcon} text-xl`} style={{ color: mainColor }} />
+          {React.createElement(getIcon(titleIcon), { size: 24, color: mainColor })}
           <h1
             className="text-lg font-bold truncate transition-opacity duration-200"
             style={{ opacity: isOpen ? 1 : 0 }}
@@ -47,7 +71,7 @@ export default function Sidebar({
             title="Cerrar"
             style={{ color: mainColor }}
           >
-            <i className="fa fa-times text-sm" />
+            <X size={16} />
           </button>
         )}
       </div>
@@ -71,7 +95,7 @@ export default function Sidebar({
               color: comp.select === i ? mainColor : undefined
             }}
           >
-            <i className={`fa fa-${s.icon} text-base`} />
+            {React.createElement(getIcon(s.icon), { size: 16 })}
             {isOpen && s.label}
           </a>
         ))}
@@ -83,7 +107,7 @@ export default function Sidebar({
           className="w-full flex items-center justify-center gap-2 py-2 rounded hover:opacity-90 transition"
           style={{ backgroundColor: mainColor, color: 'white' }}
         >
-          <i className="fa fa-gear" />
+          <Settings size={16} />
           {isOpen && 'Configuración'}
         </button>
       </div>
